@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "rootDir": ".",
+    "outDir": ".out",
+    "target": "ES2020",
+    "lib": [
+      "ES2020"
+    ],
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "strictBindCallApply": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@mp-server/common": ["./common"],
+      "@mp-server/common/rxjs": ["./common/rxjs"],
+      "@mp-server/shared": ["./shared/"]
+    },
+    "typeRoots": [
+      "./node_modules/@rxjs-stuff/marbles/@types",
+      "./node_modules/@types",
+    ]
+  }
+}

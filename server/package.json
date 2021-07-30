@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "@dandi-contrib/mvc-express": "^1.0.0-alpha.72",
+    "@dandi-contrib/mvc-view-pug": "^1.0.0-alpha.72",
+    "@dandi/cache": "^1.0.0-alpha.72",
+    "@dandi/config": "^1.0.0-alpha.72",
+    "@dandi/data": "^1.0.0-alpha.72",
+    "@dandi/hal": "^1.0.0-alpha.72",
+    "@dandi/http": "^1.0.0-alpha.72",
+    "@dandi/http-model": "^1.0.0-alpha.72",
+    "@dandi/http-pipeline": "^1.0.0-alpha.72",
+    "@dandi/logging": "^1.0.0-alpha.72",
+    "@dandi/model": "^1.0.0-alpha.72",
+    "@dandi/model-builder": "^1.0.0-alpha.72",
+    "@dandi/mvc": "^1.0.0-alpha.72",
+    "@dandi/mvc-hal": "^1.0.0-alpha.72",
+    "@dandi/mvc-view": "^1.0.0-alpha.72",
+    "bufferutil": "^4.0.3",
+    "express": "^4.17.1",
+    "pug": "^3.0.2",
+    "utf-8-validate": "^5.0.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13"
+  }
+}
