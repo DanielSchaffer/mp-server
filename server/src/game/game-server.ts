@@ -14,9 +14,8 @@ import {
   buffer,
   merge,
   Observable,
-  shareReplay,
 } from 'rxjs'
-import { filter, map, mapTo, mergeMap, pairwise, scan, share, take, tap, withLatestFrom } from 'rxjs/operators'
+import { filter, map, mapTo, mergeMap, scan, share, take, tap, withLatestFrom } from 'rxjs/operators'
 
 import { WebSocketServer, WebSocketService } from '../../dandi/websockets'
 
@@ -25,15 +24,6 @@ import { GameServerConfig } from './game-server-config'
 
 export type ClientTickMessage<TMessage extends ClientMessage = ClientMessage> = [TMessage, TickTiming]
 
-type ValidateInputData = [ClientTickMessage<ClientInputStateChange>, ClientTickMessage<ClientInputStateChange>]
-
-function validateInputStateUpdate(
-  [[prevPosition, prevTick], [currentPosition, currentTick]]: ValidateInputData
-): ClientTickMessage<ClientInputStateChange> {
-  return [currentPosition, currentTick]
-}
-
-// @Injectable(RestrictScope(GameServer))
 @Injectable(WebSocketService)
 export class GameServer implements WebSocketService {
   public readonly name = 'GameServer'
@@ -49,13 +39,11 @@ export class GameServer implements WebSocketService {
     const clientInputs$ = this.server.connection$.pipe(
       mergeMap(conn => ClientConnection.register(this.config, conn)),
       mergeMap(conn => {
-
         const inputStateUpdateMessage$: Observable<ClientInputStateChange> = conn.message$.pipe(
           filter(function(msg: ClientMessage): msg is ClientInputStateChange {
             return msg.type === ClientMessageType.inputStateChange
           }),
         )
-
         const initialInputState: ClientInputStateChange = {
           type: ClientMessageType.inputStateChange,
           inputState: INITIAL_CLIENT_INPUT_STATE
@@ -63,19 +51,15 @@ export class GameServer implements WebSocketService {
         const initialInputState$ = this.tick$.pipe(
           map(tick => ([initialInputState, tick] as const)),
           take(1),
-          shareReplay(1),
         )
-
-        const validatedUpdate$ = merge(inputStateUpdateMessage$, initialInputState$).pipe(
+        const clientInputState$: Observable<ClientTickMessage<ClientInputStateChange>> = inputStateUpdateMessage$.pipe(
           withLatestFrom(this.tick$),
-          pairwise(),
-          map(validateInputStateUpdate),
         )
         const close$: Observable<ClientTickMessage> = conn.close$.pipe(
           mapTo({ type: ClientMessageType.disconnect as const }),
           withLatestFrom(this.tick$),
         )
-        return merge(close$, initialInputState$, validatedUpdate$).pipe(
+        return merge(close$, initialInputState$, clientInputState$).pipe(
           map(([msg, tick]) => [conn, msg, tick] as const),
         )
       }),
@@ -110,9 +94,8 @@ export class GameServer implements WebSocketService {
             result.removedClients.push(update.removedClient)
           }
           return result
-        }, { type: ServerMessageType.tick, tick, addedClients: [], removedClients: [], clientInputs: undefined })
+        }, { type: ServerMessageType.tick, tick, addedClients: [], removedClients: [], clientInputs: {} })
 
-        this.logger.debug(`sending updates to ${server.clients.size} clients`, tickUpdate)
         server.clients.forEach(client => {
           client.send(json.stringify(tickUpdate))
         })

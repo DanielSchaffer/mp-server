@@ -3,7 +3,7 @@ import { keys } from '@mp-server/common'
 import {
   ClientInputState, INITIAL_CLIENT_INPUT_STATE,
 } from '@mp-server/shared'
-import { distinctUntilChanged, merge, Observable, scan, share } from 'rxjs'
+import { distinctUntilChanged, merge, Observable, scan, share, startWith } from 'rxjs'
 
 import { changes } from '@mp-server/common/rxjs'
 
@@ -17,7 +17,12 @@ export class ClientInputManager {
   constructor(
     @Inject(ClientInput) private readonly clientInputs: ClientInput[],
   ) {
-    this.input$ = merge(...clientInputs.map(c => c.input$.pipe(changes()))).pipe(
+    this.input$ = merge(
+      ...clientInputs.map(c => c.input$.pipe(
+        startWith(INITIAL_CLIENT_INPUT_STATE),
+        changes(),
+      ))
+    ).pipe(
       scan((result, changes) => {
         const changedKeys = keys(changes)
         if (changedKeys.length === 0) {

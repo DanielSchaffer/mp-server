@@ -115,14 +115,13 @@ export class GameClient implements EntryPoint {
     const gameUi$ = GameClient.initGameUi(injector, tickUpdate$, config$)
 
     const localInput$ = localClientInput.input$
-    const localInputUpdate$ = combineLatest([
-      messageClient$,
-      localInput$,
-    ]).pipe(
-      mergeMap(([client, inputState]: [MessageClient, ClientInputState]) => {
-        const msg: ClientInputStateChange = { type: ClientMessageType.inputStateChange, inputState }
-        return client.sendMessage(msg)
-      })
+    const localInputUpdate$ = messageClient$.pipe(
+      mergeMap(client => localInput$.pipe(
+        mergeMap(inputState => {
+          const msg: ClientInputStateChange = { type: ClientMessageType.inputStateChange, inputState }
+          return client.sendMessage(msg)
+        })
+      ))
     )
 
     const runUi$ = gameUi$.pipe(mergeMap(ui => ui.run$))
