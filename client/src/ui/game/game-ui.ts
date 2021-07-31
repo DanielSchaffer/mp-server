@@ -23,7 +23,6 @@ import { DebugDisplay } from './debug-display'
 import { GameScope } from './game'
 import { GameDom } from './game-dom'
 
-
 @Injectable(RestrictScope(GameScope))
 export class GameUi {
   private readonly avatars$: Observable<ClientAvatarManagers>
@@ -100,16 +99,18 @@ export class GameUi {
       }),
     )
     return avatars$.pipe(
-      tap((avatars) => {
-        Object.values(avatars).forEach(avatar => this.updatePosition(dom, avatar))
+      withLatestFrom(dom.viewportSize$),
+      tap(([avatars, viewportSize]) => {
+        Object.values(avatars).forEach(avatar => this.updatePosition(dom, avatar, viewportSize))
       }),
       silence(),
     )
   }
 
-  public static updatePosition(dom: GameDom, avatar: Avatar) {
+  public static updatePosition(dom: GameDom, avatar: Avatar, viewportSize: DOMRect) {
     if (avatar.isLocalClient) {
-      if (avatar.position.location.changed || avatar.movement.velocity.changed) {
+      const isInit = dom.init()
+      if (isInit || avatar.position.location.changed || avatar.movement.velocity.changed) {
         const total = Point.absTotal(avatar.movement.velocity)
         const mid = TRANSFORM_CONFIG.maxVelocity / 2
         const zoomFactor = (TRANSFORM_CONFIG.maxVelocity - total) / TRANSFORM_CONFIG.maxVelocity
@@ -117,15 +118,11 @@ export class GameUi {
         // const zoom = zoomFactor
         // dom.stage.style.transformOrigin = `${avatar.position.location.x}px ${avatar.position.location.y}px`
         // this.applyTransform(dom.stage, `translate(${-avatar.position.location.x}px, ${-avatar.position.location.y}px) scale(${zoom},${zoom})`)
-        this.applyTransform(dom.stage, `translate(${-avatar.position.location.x}px, ${-avatar.position.location.y}px)`)
+        this.applyTransform(dom.stage, `translate(${-avatar.position.location.x + viewportSize.width / 2}px, ${-avatar.position.location.y + viewportSize.height / 2}px)`)
       }
-      if (avatar.position.orientation.changed) {
-        this.applyTransform(avatar.el, `rotate(${avatar.position.orientation.y}deg)`)
-      }
-    } else {
-      if (avatar.position.location.changed || avatar.position.orientation.changed) {
-        this.applyTransform(avatar.el, `translate(${avatar.position.location.x}px, ${avatar.position.location.y}px) rotate(${avatar.position.orientation.y}deg)`)
-      }
+    }
+    if (avatar.position.location.changed || avatar.position.orientation.changed) {
+      this.applyTransform(avatar.el, `translate(${avatar.position.location.x}px, ${avatar.position.location.y}px) rotate(${avatar.position.orientation.y}deg)`)
     }
   }
 

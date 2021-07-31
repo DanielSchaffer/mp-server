@@ -4,6 +4,8 @@
   },
   "devDependencies": {
     "css-loader": "^6.2.0",
+    "mini-css-extract-plugin": "^2.1.0",
+    "sass": "^1.36.0",
     "sass-loader": "^12.1.0",
     "ts-loader": "^9.2.3",
     "webpack": "^5.45.1",

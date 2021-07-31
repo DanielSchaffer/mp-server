@@ -1,11 +1,19 @@
 import { Inject, Injectable, Injector, Logger, RestrictScope } from '@dandi/core'
-import { ClientId, ClientInputState, ClientScope, ClientTransformManager, createClientScope } from '@mp-server/shared'
+import {
+  ClientId,
+  ClientInputState,
+  ClientScope,
+  ClientTransformManager,
+  createClientScope,
+  INITIAL_CLIENT_TRANSFORM
+} from '@mp-server/shared'
 import {
   from,
   map,
   mergeMap,
   Observable,
   shareReplay,
+  startWith,
   withLatestFrom
 } from 'rxjs'
 
@@ -79,7 +87,7 @@ export class AvatarManagerImpl implements AvatarManager {
       const el = document.createElement('div')
       el.setAttribute('class', 'avatar')
       el.setAttribute('id', `avatar-${clientId}`)
-      dom.canvas.append(el)
+      dom.stage.append(el)
       console.log('added avatar', el)
       o.next(el)
       return () => {
@@ -91,6 +99,7 @@ export class AvatarManagerImpl implements AvatarManager {
     )
 
     const avatar$ = transformManager.transform$.pipe(
+      startWith(INITIAL_CLIENT_TRANSFORM),
       withLatestFrom(el$),
       map(([ state, el ]) => ({ el, isLocalClient, ...state })),
       shareReplay(1),

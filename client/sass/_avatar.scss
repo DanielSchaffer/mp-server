@@ -1,0 +1,10 @@
+.avatar {
+  border-radius: 10px 10px 2px 2px;
+  background: black;
+  width: 10px;
+  height: 20px;
+  position: fixed;
+  right: calc(50% - 5px);
+  top: calc(50% - 10px);
+  transform-origin: center center;
+}

@@ -2,65 +2,12 @@ doctype
 
 html
   head
-
-    style.
-      #game {}
-      #game__viewport {
-        background: #fafafa;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-      }
-      #game__stage {
-        position: absolute;
-        width: 100000px;
-        height: 100000px;
-        left: -50000px;
-        top: -50000px;
-        background-size: 100px 100px;
-        background-image:
-          linear-gradient(to right, grey 1px, transparent 1px),
-          linear-gradient(to bottom, grey 1px, transparent 1px);
-        transform-origin: 50% 50%;
-        /*transform: translate(0px, 0px) scale(1.55,1.55);*/
-      }
-      #game__canvas {
-
-      }
-      .avatar {
-        border-radius: 10px 10px 2px 2px;
-        background: black;
-        width: 10px;
-        height: 20px;
-        position: fixed;
-        left: calc(50% - 5px);
-        top: calc(50% - 10px);
-        transform-origin: center center;
-      }
-      #debug {
-        font-family: monospace;
-        position: fixed;
-        top: 0;
-        right: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      #debug > * {
-        width: 200px;
-      }
-      #debug label {
-        font-weight: bold;
-        display: inline-block;
-        margin-right: 5px;
-      }
+    link(href="//localhost:10002/main.css", type="text/css", rel="stylesheet")
     script(src="//localhost:10002/main.js")
   body
     #game
       #game__viewport
         #game__stage
-        #game__canvas
     #debug
       .debug__velocity
         label v

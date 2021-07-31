@@ -1,0 +1,28 @@
+
+#game {
+  &__viewport {
+    background: #fafafa;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  &__stage {
+    opacity: 0;
+    position: absolute;
+    width: 100000px;
+    height: 100000px;
+    left: -50000px;
+    top: -50000px;
+    background-size: 100px 100px;
+    background-image: linear-gradient(to right, grey 1px, transparent 1px),
+    linear-gradient(to bottom, grey 1px, transparent 1px);
+    transform-origin: 50% 50%;
+
+    &.game__stage--ready {
+      opacity: 1
+    }
+  }
+}
