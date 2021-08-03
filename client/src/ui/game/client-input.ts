@@ -1,10 +1,10 @@
-import { ClientInputState } from '@mp-server/shared'
+import { EntityControlState } from '@mp-server/shared/entity'
 import { Observable } from 'rxjs'
 
 import { localToken } from './local-token'
 
 export interface ClientInput {
-  input$: Observable<ClientInputState>
+  input$: Observable<EntityControlState>
 }
 
 export const ClientInput = localToken.opinionated<ClientInput>('ClientInput', {

@@ -1,25 +1,41 @@
 export interface Descriptor<T> {
-  configurable?: boolean;
-  enumerable?: boolean;
-  value?: T;
-  writable?: boolean;
-  get?(): T;
-  set?(v: T): void;
+  configurable?: boolean
+  enumerable?: boolean
+  value?: T
+  writable?: boolean
+
+  get?(): T
+
+  set?(v: T): void
 }
 
-const DESCRIPTOR_KEYS: (keyof Descriptor<unknown>)[] = ['configurable', 'enumerable', 'value', 'writable', 'get', 'set']
+const DESCRIPTOR_KEYS: (keyof Descriptor<unknown>)[] = [
+  'configurable',
+  'enumerable',
+  'value',
+  'writable',
+  'get',
+  'set',
+]
 
-export function hasOwnProperty<TProp extends string | symbol | number>(obj: unknown, ...prop: TProp[]): obj is Record<TProp, unknown>  {
-  return prop.every(p => obj?.hasOwnProperty(p))
+export function hasOwnProperty<TProp extends string | symbol | number>(
+  obj: unknown,
+  ...prop: TProp[]
+): obj is Record<TProp, unknown> {
+  return prop.every((p) => obj?.hasOwnProperty(p))
 }
 
-export function hasAnyOwnProperty<TProp extends string | symbol | number>(obj: unknown, ...prop: TProp[]): obj is Record<TProp, unknown>  {
-  return prop.some(p => obj?.hasOwnProperty(p))
+export function hasAnyOwnProperty<TProp extends string | symbol | number>(
+  obj: unknown,
+  ...prop: TProp[]
+): obj is Record<TProp, unknown> {
+  return prop.some((p) => obj?.hasOwnProperty(p))
 }
 
 export interface Constructor<T = any> {
-  new(...args: any[]): T
   readonly prototype: T
+
+  new (...args: any[]): T
 }
 
 export type TypeGuard<T> = (obj: unknown) => obj is T
@@ -60,16 +76,16 @@ export type PropDefs<TProps extends object> = {
 
 function checkType<T>(obj: unknown, check: TypeCheck<T>): obj is T {
   if (isConstructorCheck(check)) {
-    if (check.type as any === String) {
+    if ((check.type as any) === String) {
       return typeof obj === 'string'
     }
-    if (check.type as any === Number) {
+    if ((check.type as any) === Number) {
       return typeof obj === 'number'
     }
-    if (check.type as any === Boolean) {
+    if ((check.type as any) === Boolean) {
       return typeof obj === 'boolean'
     }
-    if (check.type as any === Function) {
+    if ((check.type as any) === Function) {
       return typeof obj === 'function'
     }
 
@@ -89,10 +105,13 @@ export function hasOwnProperties<TProps extends object>(obj: unknown, propDefs: 
     return false
   }
   const defs: [string, TypeCheck<any>][] = Object.entries(propDefs)
-  return typeof obj !== 'undefined' && defs.every(([name, check]) => {
-    const value = obj[name]
-    return checkType(value, check)
-  })
+  return (
+    typeof obj !== 'undefined' &&
+    defs.every(([name, check]) => {
+      const value = obj[name]
+      return checkType(value, check)
+    })
+  )
 }
 
 export function isDescriptor<T>(obj: unknown): obj is Descriptor<T> {
@@ -100,7 +119,7 @@ export function isDescriptor<T>(obj: unknown): obj is Descriptor<T> {
     return false
   }
 
-  if (Object.getOwnPropertyNames(obj).some(prop => (DESCRIPTOR_KEYS as string[]).indexOf(prop) < 0)) {
+  if (Object.getOwnPropertyNames(obj).some((prop) => (DESCRIPTOR_KEYS as string[]).indexOf(prop) < 0)) {
     return false
   }
 
@@ -108,17 +127,23 @@ export function isDescriptor<T>(obj: unknown): obj is Descriptor<T> {
     return true
   }
 
-  return (hasOwnProperty(obj, 'get') && typeof obj.get === 'function') ||
+  return (
+    (hasOwnProperty(obj, 'get') && typeof obj.get === 'function') ||
     (hasOwnProperty(obj, 'set') && typeof obj.set === 'function')
+  )
 }
 
 export type DescriptorMap<TInit, TProps = TInit> = {
   [TProp in keyof TProps]: Descriptor<TProps[TProp]>
-} & ThisType<TInit & TProps>
+} &
+  ThisType<TInit & TProps>
 
 export type ObjectInitFn = (...args: unknown[]) => unknown
-export type ObjectInit<T> = Partial<any> | ObjectInitFn
-export type ObjectProps<TInit, TProps> = DescriptorMap<TInit, TInit extends ObjectInitFn ? TProps : Omit<TProps, keyof TInit>>
+export type ObjectInit<T> = Partial<T> | ObjectInitFn
+export type ObjectProps<TInit, TProps> = DescriptorMap<
+  TInit,
+  TInit extends ObjectInitFn ? TProps : Omit<TProps, keyof TInit>
+>
 
 export function isObjectInit<T, TObjectInit extends ObjectInit<T>>(obj: unknown): obj is TObjectInit {
   return typeof obj === 'function' || !isObjectProps(obj)
@@ -130,9 +155,13 @@ export function isObjectProps<T, TInit extends ObjectInit<T>>(obj: unknown): obj
 
 export function defineObject<T>(properties: DescriptorMap<T, T> & ThisType<T>): T
 export function defineObject<TInit, TProps, T extends TInit & TProps>(
-  obj: TInit, properties: DescriptorMap<TInit, TProps>): T
+  obj: TInit,
+  properties: DescriptorMap<TInit, TProps>,
+): T
 export function defineObject<TInit, TProps, T extends TInit & TProps>(
-  objOrProperties: TInit | TProps, properties?: DescriptorMap<TInit, TProps>): T {
+  objOrProperties: TInit | TProps,
+  properties?: DescriptorMap<TInit, TProps>,
+): T {
   if (isObjectProps<T, TInit>(objOrProperties)) {
     return Object.defineProperties({}, objOrProperties) as T
   }

@@ -1,7 +1,10 @@
 import { ClientRequest, IncomingMessage } from 'http'
-import WebSocket = require('ws')
+
+import { Uuid } from '@dandi/common'
+
 import { defer, mergeMap, Observable, shareReplay, takeUntil } from 'rxjs'
 import { share } from 'rxjs/operators'
+import WebSocket = require('ws')
 
 export interface WebSocketConnectionClose {
   code: number
@@ -9,6 +12,7 @@ export interface WebSocketConnectionClose {
 }
 
 export interface WebSocketConnection<TMessage = WebSocket.Data> {
+  readonly connectionId: Uuid
   readonly close$: Observable<WebSocketConnectionClose>
   readonly socket$: Observable<WebSocket>
   readonly upgrade$: Observable<IncomingMessage>
@@ -17,11 +21,14 @@ export interface WebSocketConnection<TMessage = WebSocket.Data> {
   readonly ping$: Observable<Buffer>
   readonly pong$: Observable<Buffer>
   readonly unexpectedResponse$: Observable<[ClientRequest, IncomingMessage]>
+
   close(code?: number, data?: string): void
-  send(data: string): Observable<never>
+
+  send(data: string): Observable<void>
 }
 
 class WebSocketConnectionImpl implements WebSocketConnection {
+  public readonly connectionId: Uuid
   public readonly close$: Observable<WebSocketConnectionClose>
   public readonly socket$: Observable<WebSocket>
   public readonly upgrade$: Observable<IncomingMessage>
@@ -32,73 +39,91 @@ class WebSocketConnectionImpl implements WebSocketConnection {
   public readonly unexpectedResponse$: Observable<[ClientRequest, IncomingMessage]>
 
   constructor(protected readonly socket: WebSocket, public readonly request: IncomingMessage) {
-    this.close$ = new Observable<WebSocketConnectionClose>(o => {
+    this.connectionId = Uuid.create()
+    this.close$ = new Observable<WebSocketConnectionClose>((o) => {
       this.socket.on('close', (code, reason) => {
-        o.next({ code, reason })
+        o.next({
+          code,
+          reason,
+        })
         o.complete()
       })
-    }).pipe(
-      shareReplay(),
-    )
+    }).pipe(shareReplay())
 
-    this.socket$ = new Observable<WebSocket>(o => {
-      this.socket.on('error', err => o.error(err))
+    this.socket$ = new Observable<WebSocket>((o) => {
+      this.socket.on('error', (err) => o.error(err))
       o.next(this.socket)
       return () => this.socket.close(0, 'No more subscriptions')
-    }).pipe(
-      takeUntil(defer(() => this.close$)),
-      shareReplay(1),
-    )
+    }).pipe(takeUntil(defer(() => this.close$)), shareReplay(1))
 
     this.upgrade$ = this.socket$.pipe(
-      mergeMap(socket => new Observable<IncomingMessage>(o => {
-        socket.on('upgrade', request => o.next(request))
-      }))
+      mergeMap(
+        (socket) =>
+          new Observable<IncomingMessage>((o) => {
+            socket.on('upgrade', (request) => o.next(request))
+          }),
+      ),
     )
 
     this.message$ = this.socket$.pipe(
-      mergeMap(socket => new Observable<WebSocket.Data>(o => {
-        socket.on('message', data => o.next(data))
-      })),
+      mergeMap(
+        (socket) =>
+          new Observable<WebSocket.Data>((o) => {
+            socket.on('message', (data) => o.next(data))
+          }),
+      ),
       share(),
     )
 
     this.open$ = this.socket$.pipe(
-      mergeMap(socket => new Observable<WebSocket>(o => {
-        socket.on('open', () => o.next(socket))
-      })),
+      mergeMap(
+        (socket) =>
+          new Observable<WebSocket>((o) => {
+            socket.on('open', () => o.next(socket))
+          }),
+      ),
       share(),
     )
 
     this.ping$ = this.socket$.pipe(
-      mergeMap(socket => new Observable<Buffer>(o => {
-        socket.on('ping', data => o.next(data))
-      })),
+      mergeMap(
+        (socket) =>
+          new Observable<Buffer>((o) => {
+            socket.on('ping', (data) => o.next(data))
+          }),
+      ),
       share(),
     )
 
     this.pong$ = this.socket$.pipe(
-      mergeMap(socket => new Observable<Buffer>(o => {
-        socket.on('pong', data => o.next(data))
-      })),
+      mergeMap(
+        (socket) =>
+          new Observable<Buffer>((o) => {
+            socket.on('pong', (data) => o.next(data))
+          }),
+      ),
       share(),
     )
 
     this.unexpectedResponse$ = this.socket$.pipe(
-      mergeMap(socket => new Observable<[ClientRequest, IncomingMessage]>(o => {
-        socket.on('unexpected-response', (clientRequest, request) => o.next([clientRequest, request]))
-      })),
+      mergeMap(
+        (socket) =>
+          new Observable<[ClientRequest, IncomingMessage]>((o) => {
+            socket.on('unexpected-response', (clientRequest, request) => o.next([clientRequest, request]))
+          }),
+      ),
       share(),
     )
   }
 
-  public send(data: string): Observable<never> {
-    return new Observable(o => {
-      this.socket.send(data, err => {
+  public send(data: string): Observable<void> {
+    return new Observable((o) => {
+      this.socket.send(data, (err) => {
         if (err) {
           o.error(err)
           return
         }
+        o.next()
         o.complete()
       })
     })

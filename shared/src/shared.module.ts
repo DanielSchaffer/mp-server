@@ -2,7 +2,6 @@ import { ModuleBuilder, Provider, Registerable, ScopeRestriction } from '@dandi/
 import { isProvider } from '@dandi/core/internal/util'
 import { Observable } from 'rxjs'
 
-import { ClientTransformManager } from './client-transform-manager'
 import { HighResTimeProvider, hiresTimeProvider } from './high-res-time'
 import { localToken } from './local-token'
 import { NoSubtickTimingSourceProvider } from './no-subtick-timing-source-provider'
@@ -43,11 +42,11 @@ class SharedModuleBuilder extends ModuleBuilder<SharedModuleBuilder> {
       )
     } else if (config.tickTimingScope) {
       entries.push(subtickTimingProvider(config.tickTimingScope))
+    } else if (config.subtickTimingSource === false) {
+      entries.push(subtickTimingProvider())
     }
     return this.add(...entries)
   }
 }
 
-export const SharedModule = new SharedModuleBuilder(
-  ClientTransformManager,
-)
+export const SharedModule = new SharedModuleBuilder()

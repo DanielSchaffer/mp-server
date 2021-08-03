@@ -1,4 +1,3 @@
 import { localTokenFactory } from '@dandi/core'
 
-export const localToken = localTokenFactory('mp-server/client/game')
-
+export const localToken = localTokenFactory('@mp-server/client/game')

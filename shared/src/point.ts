@@ -1,4 +1,5 @@
 import { hasAnyOwnProperty, hasOwnProperty } from '@mp-server/common'
+
 import { Changed } from './changed'
 
 export interface Point {
@@ -17,13 +18,22 @@ export function isPartialPoint(obj: unknown): obj is Partial<Point> {
 
 export interface PointStatic {
   absTotal(...points: Partial<Point>[]): number
+
   isChanged(prev: Point, current: Point): Changed<Point>
+
   add(a: Point, b: Partial<Point>, max?: number): Changed<Point>
+
   diff(a: Point, b: Partial<Point>): Point
+
   multiply(a: Point, b: number): Point
+
   multiply(a: Point, b: Partial<Point>): Point
+
   hasDiff(a: Point, ...points: Partial<Point>[]): boolean
+
   total(...points: Partial<Point>[]): number
+
+  wrap(p: Changed<Point>, wrap: Point | number): Changed<Point>
 }
 
 function pointDiff(a: Point, b: Partial<Point>): Changed<Point> {
@@ -53,11 +63,17 @@ function pointAdd(a: Point, b: Partial<Point>, max?: number): Changed<Point> {
   const rYRatio = uncheckedResult.y / total
   const rZRatio = uncheckedResult.z / total
 
-  return pointIsChanged(a, pointMultiply({
-    x: rXRatio,
-    y: rYRatio,
-    z: rZRatio
-  }, max))
+  return pointIsChanged(
+    a,
+    pointMultiply(
+      {
+        x: rXRatio,
+        y: rYRatio,
+        z: rZRatio,
+      },
+      max,
+    ),
+  )
 }
 
 function pointIsChanged(prev: Point, current: Point): Changed<Point> {
@@ -95,6 +111,16 @@ function pointHasDiff(a: Point, ...points: Partial<Point>[]): boolean {
   })
 }
 
+function pointWrap({ x, y, z, changed }: Changed<Point>, wrap: Point | number): Changed<Point> {
+  const [wrapX, wrapY, wrapZ] = typeof wrap === 'number' ? [wrap, wrap, wrap] : [wrap.x, wrap.y, wrap.z]
+  return {
+    x: x % wrapX,
+    y: y % wrapY,
+    z: z % wrapZ,
+    changed,
+  }
+}
+
 export const Point: PointStatic = {
   absTotal: pointAbsTotal,
   total: pointTotal,
@@ -103,6 +129,12 @@ export const Point: PointStatic = {
   add: pointAdd,
   multiply: pointMultiply,
   isChanged: pointIsChanged,
+  wrap: pointWrap,
 }
 
-export const INITIAL_POINT: Changed<Point> = Object.freeze({ x: 0, y: 0, z: 0, changed: false })
+export const INITIAL_POINT: Changed<Point> = Object.freeze({
+  x: 0,
+  y: 0,
+  z: 0,
+  changed: false,
+})

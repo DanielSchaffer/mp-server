@@ -1,9 +1,10 @@
 const { resolve } = require('path')
+
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
   mode: 'development',
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
   entry: {
     main: './src/main.ts',
   },
@@ -13,33 +14,29 @@ module.exports = {
       '@mp-server/common': resolve(__dirname, '../common'),
       '@mp-server/common/rxjs': resolve(__dirname, '../common/rxjs'),
       '@mp-server/shared': resolve(__dirname, '../shared'),
+      '@mp-server/shared/client': resolve(__dirname, '../shared/client'),
+      '@mp-server/shared/entity': resolve(__dirname, '../shared/entity'),
+      '@mp-server/shared/player': resolve(__dirname, '../shared/player'),
+      '@mp-server/shared/server': resolve(__dirname, '../shared/server'),
 
       // @dandi web-ifying
-      'url': resolve(__dirname, 'node_modules/url'),
-      'util': resolve(__dirname, 'util-shim.js'),
-    }
+      url: resolve(__dirname, 'node_modules/url'),
+      util: resolve(__dirname, 'util-shim.js'),
+    },
   },
   module: {
     rules: [
       {
         test: /\.ts$/,
-        use: [
-          'ts-loader',
-        ],
+        use: ['ts-loader'],
       },
       {
         test: /\.scss$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-          'sass-loader',
-        ],
-      }
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+      },
     ],
   },
-  plugins: [
-    new MiniCssExtractPlugin(),
-  ],
+  plugins: [new MiniCssExtractPlugin()],
   devServer: {
     port: 10002,
   },

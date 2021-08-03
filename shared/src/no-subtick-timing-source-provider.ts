@@ -3,7 +3,7 @@ import { map, Observable } from 'rxjs'
 import { share } from 'rxjs/operators'
 
 import { SubtickTimingSource } from './subtick-timing-source'
-import { TickTiming } from './tick-timing'
+import { TickTiming, TickTiming$ } from './tick-timing'
 
 export function noSubtickTimingSourceProviderFactory(tick$: Observable<TickTiming>): SubtickTimingSource {
   return tick$.pipe(map(() => Date.now()), share())
@@ -12,5 +12,5 @@ export function noSubtickTimingSourceProviderFactory(tick$: Observable<TickTimin
 export const NoSubtickTimingSourceProvider: Provider<SubtickTimingSource> = {
   provide: SubtickTimingSource,
   useFactory: noSubtickTimingSourceProviderFactory,
-  deps: [TickTiming],
+  deps: [TickTiming$],
 }

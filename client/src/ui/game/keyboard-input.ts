@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@dandi/core'
-import { ClientInputState, INITIAL_CLIENT_INPUT_STATE } from '@mp-server/shared'
+import { EntityControlState, INITIAL_ENTITY_CONTROL_STATE } from '@mp-server/shared/entity'
 import {
   distinctUntilChanged,
   filter,
@@ -9,19 +9,20 @@ import {
   Observable,
   scan,
   share,
-  shareReplay, tap,
+  shareReplay,
+  startWith,
 } from 'rxjs'
 
 import { ClientInput } from './client-input'
 
-export type KeyMapping<TKey extends keyof ClientInputState> = [
+export type KeyMapping<TKey extends keyof EntityControlState> = [
   key: TKey,
-  onValue: ClientInputState[TKey],
-  offValue: ClientInputState[TKey],
+  onValue: EntityControlState[TKey],
+  offValue: EntityControlState[TKey],
 ]
 
 export interface KeyMappings {
-  [key: string]: KeyMapping<keyof ClientInputState>
+  [key: string]: KeyMapping<keyof EntityControlState>
 }
 
 const KEY_MAPPINGS: KeyMappings = {
@@ -34,8 +35,7 @@ const KEY_MAPPINGS: KeyMappings = {
 
 @Injectable(ClientInput)
 export class KeyboardInput implements ClientInput {
-
-  public readonly input$: Observable<ClientInputState>
+  public readonly input$: Observable<EntityControlState>
 
   constructor(
     @Inject(Document) private readonly document: Document,
@@ -44,23 +44,29 @@ export class KeyboardInput implements ClientInput {
     this.input$ = this.initInput()
   }
 
-  protected initInput(): Observable<ClientInputState> {
+  protected initInput(): Observable<EntityControlState> {
     const interestedKeys = Object.keys(KEY_MAPPINGS)
     const filterInterestedKeys = filter((e: KeyboardEvent) => interestedKeys.includes(e.key))
 
     const keyDown$ = fromEvent<KeyboardEvent>(this.document, 'keydown').pipe(
       filterInterestedKeys,
-      map(e => {
+      map((e) => {
         const [key, onState] = KEY_MAPPINGS[e.key]
-        return { key, state: onState }
+        return {
+          key,
+          state: onState,
+        }
       }),
       share(),
     )
     const keyUp$ = fromEvent<KeyboardEvent>(this.document, 'keyup').pipe(
       filterInterestedKeys,
-      map(e => {
-        const [key, onState, offState] = KEY_MAPPINGS[e.key]
-        return { key, state: offState }
+      map((e) => {
+        const [key, , offState] = KEY_MAPPINGS[e.key]
+        return {
+          key,
+          state: offState,
+        }
       }),
       share(),
     )
@@ -71,10 +77,10 @@ export class KeyboardInput implements ClientInput {
           return Object.assign({}, activeKeys, { [change.key]: change.state })
         }
         return activeKeys
-      }, INITIAL_CLIENT_INPUT_STATE),
+      }, INITIAL_ENTITY_CONTROL_STATE),
+      startWith(INITIAL_ENTITY_CONTROL_STATE),
       distinctUntilChanged(),
       shareReplay(1),
     )
-
   }
 }

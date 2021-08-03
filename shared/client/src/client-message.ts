@@ -1,5 +1,6 @@
+import { EntityControlState } from '@mp-server/shared/entity'
+
 import { ClientId } from './client'
-import { ClientInputState } from './client-input-state'
 import { ClientMessageType } from './client-message-type'
 
 export interface ClientRegistration {
@@ -7,16 +8,16 @@ export interface ClientRegistration {
   clientId: ClientId
 }
 
-export interface ClientInputStateChange {
+export interface ClientControlStateChange {
   type: ClientMessageType.inputStateChange
-  inputState: ClientInputState
+  controlState: EntityControlState
 }
 
 export interface ClientDisconnect {
   type: ClientMessageType.disconnect
 }
 
-export type ClientMessage = ClientDisconnect | ClientInputStateChange | ClientRegistration
+export type ClientMessage = ClientDisconnect | ClientControlStateChange | ClientRegistration
 
 export function isClientRegistration(msg: ClientMessage): msg is ClientRegistration {
   return msg.type === ClientMessageType.register

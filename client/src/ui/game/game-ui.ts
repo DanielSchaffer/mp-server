@@ -1,132 +1,90 @@
 import { Inject, Injectable, Injector, Logger, RestrictScope } from '@dandi/core'
 import { silence } from '@mp-server/common/rxjs'
-import { ClientConfig, Point, TickUpdate, TRANSFORM_CONFIG } from '@mp-server/shared'
+import { ClientConfig$, ClientControlStateChange, ClientMessageType, ClientScope } from '@mp-server/shared/client'
+import { EntityControlState$ } from '@mp-server/shared/entity'
+import { TickUpdate$ } from '@mp-server/shared/server'
 import {
-  combineLatest,
   filter,
-  map, merge,
+  from,
+  map,
+  merge,
   mergeMap,
   Observable,
-  of,
   pluck,
-  scan,
-  shareReplay,
+  share,
   switchMap,
-  tap,
-  withLatestFrom
+  take,
+  withLatestFrom,
 } from 'rxjs'
 
-import { Avatar, AvatarManagerFacade, ClientAvatarManagers } from '../avatar'
+import { GameClientConnection } from '../../game-client-connection'
 
-import { ClientInputManager } from './client-input-manager'
+import { AvatarManager, avatarManagerFactory } from '../avatar'
+
+import { ClientControlsManager } from './client-controls-manager'
+
 import { DebugDisplay } from './debug-display'
-import { GameScope } from './game'
 import { GameDom } from './game-dom'
 
-@Injectable(RestrictScope(GameScope))
+@Injectable(RestrictScope(ClientScope))
 export class GameUi {
-  private readonly avatars$: Observable<ClientAvatarManagers>
+  public readonly run$: Observable<never>
+  public readonly localInput$: EntityControlState$
+  public readonly localInputUpdate$: Observable<void>
+  private readonly avatar$: Observable<AvatarManager>
   private readonly animate$: Observable<never>
 
-  public readonly run$: Observable<never>
+  protected static initAvatars(injector: Injector, conn: GameClientConnection): Observable<AvatarManager> {
+    const viaInitialEntities$ = conn.config$.pipe(
+      take(1),
+      switchMap((config) => from(config.initialEntityIds)),
+    )
+    const viaAddEntity$ = conn.addEntity$.pipe(pluck('entityId'))
+    const createAvatarManager = avatarManagerFactory.bind(undefined, injector)
+    return merge(viaInitialEntities$, viaAddEntity$).pipe(mergeMap(createAvatarManager), share())
+  }
 
   constructor(
-    @Inject(ClientConfig) protected readonly config$: Observable<ClientConfig>,
-    @Inject(TickUpdate) protected readonly tickUpdate$: Observable<TickUpdate>,
-    @Inject(ClientInputManager) protected readonly localClientInput: ClientInputManager,
+    @Inject(GameClientConnection) protected readonly conn: GameClientConnection,
+    @Inject(ClientConfig$) protected readonly config$: ClientConfig$,
+    @Inject(TickUpdate$) protected readonly tickUpdate$: TickUpdate$,
     @Inject(GameDom) protected readonly dom: GameDom,
+    @Inject(ClientControlsManager) protected readonly localClientInput: ClientControlsManager,
     @Inject(Injector) protected readonly injector: Injector,
     @Inject(DebugDisplay) protected readonly debug: DebugDisplay,
     @Inject(Logger) protected readonly logger: Logger,
   ) {
+    const avatar$ = GameUi.initAvatars(this.injector, conn)
 
-    // this.localPlayerInput$ = combineLatest([this.config$, this.clientInputs$]).pipe(
-    //   map(([{ clientId }, positions]) => positions[clientId]),
-    //   filter(pos => !!pos),
-    //   share(),
-    // )
-    const avatars$ = GameUi.initClientAvatars(this.injector, this.localClientInput, this.tickUpdate$, this.config$)
-    const animate$ = GameUi.initAnimate(this.dom, avatars$)
+    const localInput$ = localClientInput.input$
+    const localInputUpdate$ = localInput$.pipe(
+      map(
+        (controlState): ClientControlStateChange => ({
+          type: ClientMessageType.inputStateChange,
+          controlState,
+        }),
+      ),
+      mergeMap((update) => conn.send(update)),
+      share(),
+    )
 
-    const localClientTransform$ = avatars$.pipe(
+    const localClientTransform$ = avatar$.pipe(
       withLatestFrom(this.config$),
-      filter(([avatars, config]) => !!avatars[config.clientId]),
-      switchMap(([avatars, config]) => avatars[config.clientId].avatar$),
+      filter(([avatar, config]) => avatar.avatarEntityId === config.clientId),
+      switchMap(([avatar]) => avatar.avatar$),
     )
 
-    this.avatars$ = avatars$
+    const animate$ = avatar$.pipe(mergeMap((avatar) => avatar.animate$))
+
+    this.avatar$ = avatar$
     this.animate$ = animate$
-    this.run$ = merge(this.animate$, this.debug.bind(localClientTransform$))
-  }
-
-  protected static initClientAvatars(
-    injector: Injector,
-    localClientInput: ClientInputManager,
-    tickUpdate$: Observable<TickUpdate>,
-    config$: Observable<ClientConfig>,
-  ): Observable<ClientAvatarManagers> {
-    return tickUpdate$.pipe(
-      withLatestFrom(config$),
-      scan((avatars, [update, config]) => {
-        update.addedClients.forEach(clientId => {
-          const isLocalClient = clientId === config.clientId
-          const clientInput$ = isLocalClient ? localClientInput.input$ : tickUpdate$.pipe(pluck('clientInputs', clientId))
-          avatars[clientId] = AvatarManagerFacade.create(injector, clientId, isLocalClient, clientInput$)
-        })
-
-        update.removedClients.forEach(clientId => {
-          delete avatars[clientId]
-        })
-
-        return avatars
-      }, {} as ClientAvatarManagers),
-      shareReplay(1),
-    )
-  }
-
-  protected static initAnimate(dom: GameDom, avatarManagers$: Observable<ClientAvatarManagers>): Observable<never> {
-    const avatars$ = avatarManagers$.pipe(
-      mergeMap(managers => {
-        const clientIds$ = of(Object.keys(managers))
-        const avatars$ = combineLatest(Object.values(managers).map(manager => manager.avatar$))
-        return combineLatest([clientIds$, avatars$])
-      }),
-      map(([clientIds, avatars]) => {
-        return clientIds.reduce((result, clientId, index) => {
-          result[clientId] = avatars[index]
-          return result
-        }, {} as { [clientId: string]: Avatar })
-      }),
-    )
-    return avatars$.pipe(
-      withLatestFrom(dom.viewportSize$),
-      tap(([avatars, viewportSize]) => {
-        Object.values(avatars).forEach(avatar => this.updatePosition(dom, avatar, viewportSize))
-      }),
-      silence(),
-    )
-  }
-
-  public static updatePosition(dom: GameDom, avatar: Avatar, viewportSize: DOMRect) {
-    if (avatar.isLocalClient) {
-      const isInit = dom.init()
-      if (isInit || avatar.position.location.changed || avatar.movement.velocity.changed) {
-        const total = Point.absTotal(avatar.movement.velocity)
-        const mid = TRANSFORM_CONFIG.maxVelocity / 2
-        const zoomFactor = (TRANSFORM_CONFIG.maxVelocity - total) / TRANSFORM_CONFIG.maxVelocity
-        const zoom = zoomFactor + 0.55
-        // const zoom = zoomFactor
-        // dom.stage.style.transformOrigin = `${avatar.position.location.x}px ${avatar.position.location.y}px`
-        // this.applyTransform(dom.stage, `translate(${-avatar.position.location.x}px, ${-avatar.position.location.y}px) scale(${zoom},${zoom})`)
-        this.applyTransform(dom.stage, `translate(${-avatar.position.location.x + viewportSize.width / 2}px, ${-avatar.position.location.y + viewportSize.height / 2}px)`)
-      }
-    }
-    if (avatar.position.location.changed || avatar.position.orientation.changed) {
-      this.applyTransform(avatar.el, `translate(${avatar.position.location.x}px, ${avatar.position.location.y}px) rotate(${avatar.position.orientation.y}deg)`)
-    }
-  }
-
-  public static applyTransform(el: HTMLDivElement, transform: string): void {
-    el.style.transform = transform
+    this.localInput$ = localInput$
+    this.localInputUpdate$ = localInputUpdate$
+    this.run$ = merge(
+      this.animate$,
+      this.localInput$,
+      this.localInputUpdate$,
+      this.debug.bind(localClientTransform$),
+    ).pipe(silence())
   }
 }

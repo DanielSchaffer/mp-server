@@ -14,11 +14,18 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "strictBindCallApply": true,
+    "sourceMap": true,
 
     "baseUrl": ".",
     "paths": {
+      "@dandi/websockets": ["./server/dandi/websockets"],
       "@mp-server/common": ["./common"],
+      "@mp-server/common/dandi": ["./common/dandi"],
       "@mp-server/common/rxjs": ["./common/rxjs"],
+      "@mp-server/shared/client": ["./shared/client"],
+      "@mp-server/shared/entity": ["./shared/entity"],
+      "@mp-server/shared/player": ["./shared/player"],
+      "@mp-server/shared/server": ["./shared/server"],
       "@mp-server/shared": ["./shared/"]
     },
     "typeRoots": [

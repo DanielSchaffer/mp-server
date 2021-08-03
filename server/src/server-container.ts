@@ -1,22 +1,22 @@
+import { MvcExpressModule } from '@dandi-contrib/mvc-express'
+import { PugViewEngine } from '@dandi-contrib/mvc-view-pug'
 import { CascadingCache, MemoryCache, ServiceContextCacheKeyGenerator } from '@dandi/cache'
 import { NODE_ENV } from '@dandi/common'
-import { AmbientInjectableScanner, DandiApplication } from '@dandi/core'
+import { IS_DEV_ENV } from '@dandi/common/src/environment'
+import { AmbientInjectableScanner, DandiApplication, LogLevel } from '@dandi/core'
 import { ConsoleLogListener, DefaultLogging, LoggingModule } from '@dandi/core/logging'
 import { HttpHeader } from '@dandi/http'
 import { CorsConfig, HttpPipelineModule } from '@dandi/http-pipeline'
 import { PrettyColorsLogging } from '@dandi/logging'
 import { MvcHalModule } from '@dandi/mvc-hal'
 import { MvcViewModule } from '@dandi/mvc-view'
-import { MvcExpressModule } from '@dandi-contrib/mvc-express'
-import { PugViewEngine } from '@dandi-contrib/mvc-view-pug'
-
-import { LogLevel } from '@dandi/core/types'
-import { IS_DEV_ENV } from '@dandi/common/src/environment'
+import { WebSocketServerModule } from '@dandi/websockets'
 import { SharedModule } from '@mp-server/shared'
 
 import { ClientController } from './client/client-controller'
-import { WebSocketServerModule } from '../dandi/websockets'
 import { GameModule } from './game'
+
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 
 const ENV = NODE_ENV || 'dev'
 
@@ -37,7 +37,7 @@ const CORS_ENV: CorsConfig =
 const CORS = Object.assign({}, CORS_DEFAULT, CORS_ENV)
 
 const loggingConfig = IS_DEV_ENV
-  ? PrettyColorsLogging
+  ? PrettyColorsLogging.set({ filter: LogLevel.debug })
   : DefaultLogging.clone().set({
       timestampTag: false,
       filter: LogLevel.info,

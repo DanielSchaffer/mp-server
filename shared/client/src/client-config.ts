@@ -1,21 +1,25 @@
 import { Provider } from '@dandi/core'
+import { EntityId } from '@mp-server/shared/entity'
 import { Observable } from 'rxjs'
 
+import { ClientId, ClientScope } from './client'
 import { localToken } from './local-token'
-import { ClientId } from './client'
 
 export interface ClientConfig {
   clientId: ClientId
   tickInterval: number
+  initialEntityIds: EntityId[]
 }
 
-export const ClientConfig = localToken.opinionated<Observable<ClientConfig>>('ClientConfig', {
+export type ClientConfig$ = Observable<ClientConfig>
+export const ClientConfig$ = localToken.opinionated<ClientConfig$>('ClientConfig$', {
   multi: false,
+  restrictScope: ClientScope,
 })
 
 export function clientConfigProvider(config$: Observable<ClientConfig>): Provider<Observable<ClientConfig>> {
   return {
-    provide: ClientConfig,
+    provide: ClientConfig$,
     useValue: config$,
   }
 }

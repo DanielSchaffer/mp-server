@@ -1,5 +1,8 @@
 import { ModuleBuilder, Registerable } from '@dandi/core'
 
+import { AvatarEntityProviders } from './avatar-entity-providers'
+import { AvatarManagerImpl } from './avatar-manager'
+
 import { localToken } from './local-token'
 
 class AvatarModuleBuilder extends ModuleBuilder<AvatarModuleBuilder> {
@@ -8,5 +11,4 @@ class AvatarModuleBuilder extends ModuleBuilder<AvatarModuleBuilder> {
   }
 }
 
-export const AvatarModule = new AvatarModuleBuilder(
-)
+export const AvatarModule = new AvatarModuleBuilder(AvatarEntityProviders, AvatarManagerImpl)

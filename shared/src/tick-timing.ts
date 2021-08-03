@@ -1,5 +1,5 @@
 import { Provider, ScopeRestriction } from '@dandi/core'
-import { combineLatest, Observable, of, switchMap, tap, timer } from 'rxjs'
+import { combineLatest, Observable, of, switchMap, timer } from 'rxjs'
 import { scan, share } from 'rxjs/operators'
 
 import { HighResTimeProvider } from './high-res-time'
@@ -10,44 +10,48 @@ export interface TickTimingConfig {
 }
 
 export interface TickTiming {
-  id: number
-  timestamp: bigint
   elapsed: bigint
-  interval: number
+  tick: number
+  tickInterval: number
+  timestamp: bigint
 }
 
-export const TickTiming = localToken.opinionated<Observable<TickTiming>>('TickTiming', {
+export type TickTiming$ = Observable<TickTiming>
+export const TickTiming$ = localToken.opinionated<TickTiming$>('TickTiming$', {
   multi: false,
 })
 
 export const INITIAL_TICK_TIMING: TickTiming = Object.freeze({
-  id: 0,
+  tick: 0,
   timestamp: undefined,
   elapsed: 0n,
-  interval: undefined,
+  tickInterval: undefined,
 })
 
 export function getInitialTickTiming({ interval }: TickTimingConfig, hrtime: HighResTimeProvider): TickTiming {
   return Object.assign({}, INITIAL_TICK_TIMING, {
     timestamp: hrtime(),
-    interval,
+    tickInterval: interval,
   })
 }
 
-export function tickTiming(config$: Observable<TickTimingConfig>, hrtime: HighResTimeProvider): Observable<TickTiming> {
+export function tickTiming(
+  config$: Observable<TickTimingConfig>,
+  hrtime: HighResTimeProvider,
+): Observable<TickTiming> {
   return config$.pipe(
     switchMap((config) => combineLatest([of(config), timer(0, config.interval)])),
-    scan((tick, [config, id]) => {
-      if (!tick) {
+    scan((timing, [config, tick]): TickTiming => {
+      if (!timing) {
         return getInitialTickTiming(config, hrtime)
       }
       const timestamp = hrtime()
-      const elapsed = tick.elapsed + (timestamp - tick.timestamp)
+      const elapsed = timing.elapsed + (timestamp - timing.timestamp)
       return {
-        id,
+        tick,
         timestamp,
         elapsed,
-        interval: config.interval,
+        tickInterval: config.interval,
       }
     }, undefined),
     share(),
@@ -56,10 +60,10 @@ export function tickTiming(config$: Observable<TickTimingConfig>, hrtime: HighRe
 
 export function tickTimingProvider(
   tick$: Observable<TickTiming>,
-  restrictScope?: ScopeRestriction
+  restrictScope?: ScopeRestriction,
 ): Provider<Observable<TickTiming>> {
   return {
-    provide: TickTiming,
+    provide: TickTiming$,
     useValue: tick$,
     restrictScope,
   }

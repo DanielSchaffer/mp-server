@@ -1,12 +1,11 @@
 import { Inject, Injectable, Provider } from '@dandi/core'
-import { HighResTimeProvider, tickTiming, TickTiming } from '@mp-server/shared'
+import { HighResTimeProvider, tickTiming, TickTiming, TickTiming$ } from '@mp-server/shared'
 import { Observable, of } from 'rxjs'
 
 import { GameServerConfig } from './game-server-config'
 
 @Injectable()
 class GameServerTickTimingFactory {
-
   public readonly tick$: Observable<TickTiming>
 
   constructor(
@@ -22,7 +21,7 @@ function gameServerTickTimingFactory(factory: GameServerTickTimingFactory): Obse
 }
 
 export const GameServerTickTiming: Provider<Observable<TickTiming>> = {
-  provide: TickTiming,
+  provide: TickTiming$,
   useFactory: gameServerTickTimingFactory,
   deps: [GameServerTickTimingFactory],
 }
