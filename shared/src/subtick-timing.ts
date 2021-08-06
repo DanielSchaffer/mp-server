@@ -1,9 +1,11 @@
 import { Provider, ScopeRestriction } from '@dandi/core'
-import { Observable, scan, share, withLatestFrom } from 'rxjs'
+import { map, Observable, scan, share, withLatestFrom } from 'rxjs'
 
 import { localToken } from './local-token'
-import { SubtickTimingSource } from './subtick-timing-source'
+import { NO_SUBTICK_TIMING, SubtickTimingSource } from './subtick-timing-source'
 import { TickTiming, TickTiming$ } from './tick-timing'
+
+const MS_PER_SECOND = 1000
 
 export interface SubtickTiming extends TickTiming {
   isNewTick: boolean
@@ -13,17 +15,25 @@ export interface SubtickTiming extends TickTiming {
    */
   subtick: number
   subtickTimestamp: number
+  timedelta: number
+
+  lastTickFrame?: number
+  nextTickFrame?: number
 }
 
 export const SubtickTiming$ = localToken.opinionated<Observable<SubtickTiming>>('SubtickTiming$', {
   multi: false,
 })
 
-export function subtick(tick$: TickTiming$, subtickTimeSource$: SubtickTimingSource): Observable<SubtickTiming> {
-  return subtickTimeSource$.pipe(
+function getSubtickTiming(tick$: TickTiming$, subtickTimingSource$: SubtickTimingSource): Observable<number> {
+  return subtickTimingSource$ === NO_SUBTICK_TIMING ? tick$.pipe(map(() => Date.now())) : subtickTimingSource$
+}
+
+export function subtick(tick$: TickTiming$, subtickTimingSource$: SubtickTimingSource): Observable<SubtickTiming> {
+  const isNoSubtickTiming = subtickTimingSource$ === NO_SUBTICK_TIMING
+  return getSubtickTiming(tick$, subtickTimingSource$).pipe(
     withLatestFrom(tick$),
-    scan((result, [subtickTimestamp, wtf]) => {
-      const { tick, tickInterval } = wtf
+    scan((result, [subtickTimestamp, { tick, tickInterval, ...timing }]): SubtickTiming => {
       const isNewTick = !result || result.tick !== tick
       const shared = {
         tick,
@@ -37,16 +47,27 @@ export function subtick(tick$: TickTiming$, subtickTimeSource$: SubtickTimingSou
           subtick: 0,
           lastTickFrame: subtickTimestamp,
           nextTickFrame: subtickTimestamp + tickInterval,
+          elapsed: timing.elapsed,
+          timestamp: timing.timestamp,
+          timedelta: 0,
         })
       }
+
+      const timedeltaMs = subtickTimestamp - result.subtickTimestamp
+      const timedelta = timedeltaMs / MS_PER_SECOND
 
       if (result.tick === tick) {
         const { lastTickFrame, nextTickFrame } = result
         const subtick = 1 - (nextTickFrame - subtickTimestamp) / (nextTickFrame - lastTickFrame)
+        const timestamp = result.timestamp + timedeltaMs
+        const elapsed = result.elapsed + timedeltaMs
         return Object.assign(shared, {
           lastTickFrame,
           nextTickFrame,
           subtick,
+          timestamp,
+          elapsed,
+          timedelta,
         })
       }
 
@@ -55,9 +76,12 @@ export function subtick(tick$: TickTiming$, subtickTimeSource$: SubtickTimingSou
       // console.log('new tick frame', { frame, offBy, sinceLastFrame, expectedFrame: result.nextTickFrame, lastTickFrame: result.lastTickFrame })
 
       return Object.assign(shared, {
-        subtick: 0,
+        subtick: isNoSubtickTiming ? 1 : 0,
         lastTickFrame: subtickTimestamp,
         nextTickFrame: subtickTimestamp + tickInterval,
+        elapsed: timing.elapsed,
+        timestamp: timing.timestamp,
+        timedelta,
       })
     }, undefined),
     share(),

@@ -37,10 +37,10 @@
       ],
       "rules": {
         "mocha/no-exclusive-tests": "error",
-        "no-magic-numbers": "off",
         "no-invalid-this": "off",
         "no-new": "off",
         "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-magic-numbers": "off",
         "@typescript-eslint/no-use-before-define": "off"
       }
     },

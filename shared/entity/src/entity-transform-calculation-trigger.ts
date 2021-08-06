@@ -8,7 +8,7 @@ import {
   SubtickTimedEntityStateTracking,
   TickTimedEntityState$,
 } from '@mp-server/shared/entity'
-import { combineLatest, filter, map, Observable, withLatestFrom } from 'rxjs'
+import { filter, map, Observable, withLatestFrom } from 'rxjs'
 import { share } from 'rxjs/operators'
 
 import { localToken } from './local-token'
@@ -48,16 +48,44 @@ export const EntityTransformCalculationTrigger$ = localToken.opinionated<EntityT
 
 export const ControlledEntityTransformCalculation: Provider<EntityTransformCalculationTrigger$> = {
   provide: EntityTransformCalculationTrigger$,
-  useFactory(controlState$: Observable<EntityControlState>, subtick$: Observable<SubtickTiming>) {
-    return combineLatest([controlState$, subtick$]).pipe(
-      map(([control, timing]) => ({
-        control,
-        timing,
-      })),
+  useFactory(
+    controlState$: Observable<EntityControlState>,
+    subtick$: Observable<SubtickTiming>,
+  ): Observable<ControlledEntityTransformCalculationData> {
+    return subtick$.pipe(
+      withLatestFrom(controlState$),
+      map(([timing, control]) => {
+        return {
+          control,
+          timing,
+        }
+      }),
       share(),
     )
   },
   deps: [EntityControlState$, SubtickTiming$],
+}
+
+export const ControlledValidatedEntityTransformCalculation: Provider<EntityTransformCalculationTrigger$> = {
+  provide: EntityTransformCalculationTrigger$,
+  useFactory(
+    controlState$: Observable<EntityControlState>,
+    subtick$: Observable<SubtickTiming>,
+    entityState$: TickTimedEntityState$,
+  ) {
+    return subtick$.pipe(
+      withLatestFrom(controlState$, entityState$),
+      map(([timing, control, entityState]) => {
+        return {
+          lastTickTransform: entityState.transform,
+          control,
+          timing,
+        }
+      }),
+      share(),
+    )
+  },
+  deps: [EntityControlState$, SubtickTiming$, TickTimedEntityState$],
 }
 
 export const ReportedEntityTransformationCalculation: Provider<EntityTransformCalculationTrigger$> = {

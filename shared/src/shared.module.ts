@@ -4,9 +4,12 @@ import { Observable } from 'rxjs'
 
 import { HighResTimeProvider, hiresTimeProvider } from './high-res-time'
 import { localToken } from './local-token'
-import { NoSubtickTimingSourceProvider } from './no-subtick-timing-source-provider'
 import { subtickTimingProvider } from './subtick-timing'
-import { SubtickTimingSource, subtickTimingSourceProvider } from './subtick-timing-source'
+import {
+  NoSubtickTimingSourceProvider,
+  SubtickTimingSource,
+  subtickTimingSourceProvider,
+} from './subtick-timing-source'
 import { TickTiming, tickTimingProvider } from './tick-timing'
 
 export interface SharedModuleConfig {

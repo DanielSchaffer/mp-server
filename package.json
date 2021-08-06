@@ -1,4 +1,9 @@
 {
+  "name": "mp-server",
+  "private": true,
+  "scripts": {
+    "test": "mocha"
+  },
   "dependencies": {
     "@dandi/common": "^1.0.0-alpha.72",
     "@dandi/core": "^1.0.0-alpha.72",
@@ -13,8 +18,10 @@
   "devDependencies": {
     "@rxjs-stuff/marbles": "^2.0.0-pre.4",
     "@types/chai": "^4.2.21",
+    "@types/mocha": "^9.0.0",
     "@types/node": "^14.17.5",
     "@types/sinon": "^10.0.2",
+    "@types/sinon-chai": "^3.2.5",
     "@types/ws": "^7.4.6",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
@@ -23,8 +30,10 @@
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-prettier": "^3.4.0",
+    "mocha": "^9.0.3",
     "prettier": "^2.3.2",
-    "sinon": "^11.1.1",
+    "sinon": "^11.1.2",
+    "sinon-chai": "^3.7.0",
     "ts-node": "^10.1.0",
     "tsconfig-paths": "^3.10.1",
     "typescript": "^4.3.5"

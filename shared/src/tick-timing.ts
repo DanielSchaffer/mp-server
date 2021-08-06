@@ -10,10 +10,10 @@ export interface TickTimingConfig {
 }
 
 export interface TickTiming {
-  elapsed: bigint
+  elapsed: number
   tick: number
   tickInterval: number
-  timestamp: bigint
+  timestamp: number
 }
 
 export type TickTiming$ = Observable<TickTiming>
@@ -24,13 +24,14 @@ export const TickTiming$ = localToken.opinionated<TickTiming$>('TickTiming$', {
 export const INITIAL_TICK_TIMING: TickTiming = Object.freeze({
   tick: 0,
   timestamp: undefined,
-  elapsed: 0n,
+  elapsed: 0,
   tickInterval: undefined,
 })
 
 export function getInitialTickTiming({ interval }: TickTimingConfig, hrtime: HighResTimeProvider): TickTiming {
   return Object.assign({}, INITIAL_TICK_TIMING, {
-    timestamp: hrtime(),
+    timestamp: Date.now(),
+    // timestamp: hrtime(),
     tickInterval: interval,
   })
 }
@@ -45,7 +46,8 @@ export function tickTiming(
       if (!timing) {
         return getInitialTickTiming(config, hrtime)
       }
-      const timestamp = hrtime()
+      // const timestamp = hrtime()
+      const timestamp = Date.now()
       const elapsed = timing.elapsed + (timestamp - timing.timestamp)
       return {
         tick,

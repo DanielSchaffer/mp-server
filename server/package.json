@@ -1,4 +1,5 @@
 {
+  "name": "@mp-server/server",
   "dependencies": {
     "@dandi-contrib/mvc-express": "^1.0.0-alpha.72",
     "@dandi-contrib/mvc-view-pug": "^1.0.0-alpha.72",

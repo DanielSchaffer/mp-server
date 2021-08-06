@@ -1,7 +1,7 @@
 import { Provider } from '@dandi/core'
 import { ClientConfig$ } from '@mp-server/shared/client'
 import {
-  ControlledEntityTransformCalculation,
+  ControlledValidatedEntityTransformCalculation,
   EntityId,
   ReportedEntityTransformationCalculation,
   TickTimedEntityState$,
@@ -27,23 +27,26 @@ function avatarDataFactory(config$: ClientConfig$, avatarEntityId: AvatarEntityI
   return firstValueFrom(data$)
 }
 
+const TickTimedEntityState$Provider: Provider<TickTimedEntityState$> = {
+  provide: TickTimedEntityState$,
+  useFactory: (conn: GameClientConnection, avatarEntityId: AvatarEntityId) =>
+    conn.tickUpdate$.pipe(
+      filter(({ entityStates }) => !!entityStates[avatarEntityId]),
+      map(({ tick, entityStates }) => ({ timing: tick, ...entityStates[avatarEntityId] })),
+    ),
+  deps: [GameClientConnection, AvatarEntityId],
+}
+
 function avatarEntityTransformCalculationTriggerProvidersFactory({
   isLocalClient,
 }: AvatarData): AvatarEntityTransformCalculationTriggerProviders {
   return isLocalClient
-    ? [ControlledEntityTransformCalculation, ClientControlsManager.entityControlState$Provider]
-    : [
-        ReportedEntityTransformationCalculation,
-        {
-          provide: TickTimedEntityState$,
-          useFactory: (conn: GameClientConnection, avatarEntityId: AvatarEntityId) =>
-            conn.tickUpdate$.pipe(
-              filter(({ entityStates }) => !!entityStates[avatarEntityId]),
-              map(({ tick, entityStates }) => ({ timing: tick, ...entityStates[avatarEntityId] })),
-            ),
-          deps: [GameClientConnection, AvatarEntityId],
-        },
+    ? [
+        ControlledValidatedEntityTransformCalculation,
+        ClientControlsManager.entityControlState$Provider,
+        TickTimedEntityState$Provider,
       ]
+    : [ReportedEntityTransformationCalculation, TickTimedEntityState$Provider]
 }
 
 export type AvatarProviders = [
