@@ -7,11 +7,12 @@ import {
 } from '@mp-server/common/dandi'
 import { Observable } from 'rxjs'
 
+import { EntityProfile } from './entity-profile'
 import { localToken } from './local-token'
 
 export type EntityId = string
 
-export interface EntityScopeData {
+export interface EntityScopeData extends EntityProfile {
   // TODO: switch to symbol after TypeScript 4.4
   entityId: EntityId
 }
@@ -40,6 +41,7 @@ export const EntityId = localToken.opinionated<EntityId>('Entity', {
 
 export const EntityScopeRequiredTokens = scopeRequiredTokens({
   EntityId,
+  EntityProfile,
 })
 export type EntityScopeRequiredTokens = typeof EntityScopeRequiredTokens
 export type EntityScopeRequiredProviders = ScopeRequiredProviders<EntityScopeRequiredTokens>

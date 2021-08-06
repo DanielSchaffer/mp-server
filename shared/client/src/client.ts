@@ -1,9 +1,10 @@
 import { defineScope, scopeInstanceFactory } from '@mp-server/common/dandi'
 import { Observable } from 'rxjs'
 
+import { ClientProfile } from './client-profile'
 import { localToken } from './local-token'
 
-export interface ClientScopeData {
+export interface ClientScopeData extends ClientProfile {
   clientId: string
 }
 

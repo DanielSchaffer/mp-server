@@ -6,6 +6,7 @@ import {
   ClientId,
   ClientMessage,
   ClientMessageType,
+  ClientProfile,
   ClientScope,
 } from '@mp-server/shared/client'
 import {
@@ -32,11 +33,14 @@ export class GameClientConnection implements Client<ServerMessage, void> {
   public readonly tickUpdate$: TickUpdate$
   public readonly addEntity$: Observable<AddEntityMessage>
   public readonly removeEntity$: Observable<RemoveEntityMessage>
+  public readonly entityDefKey: string
 
   constructor(
     @Inject(WebSocketClient) protected readonly ws: WebSocketClient,
     @Inject(ClientId) public readonly clientId: ClientId,
+    @Inject(ClientProfile) public readonly profile: ClientProfile,
   ) {
+    this.entityDefKey = profile.entityDefKey
     this.open$ = this.ws.open$.pipe(mapTo(this), shareReplay(1))
     this.disconnect$ = this.ws.close$
     const message$ = this.ws.message$.pipe(
@@ -49,6 +53,7 @@ export class GameClientConnection implements Client<ServerMessage, void> {
         this.send({
           type: ClientMessageType.register,
           clientId,
+          profile,
         }),
       ),
       shareReplay(1),

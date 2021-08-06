@@ -16,6 +16,7 @@ import {
   createEntityScope,
   EntityControlState,
   EntityControlState$,
+  EntityProfile,
   EntityTransformCalculationTrigger$,
   INITIAL_ENTITY_CONTROL_STATE,
 } from '@mp-server/shared/entity'
@@ -115,7 +116,13 @@ export class ServerPlayerManager {
         const initialInputState$ = of(initialInputState)
         const message$ = merge(inputStateUpdateMessage$, initialInputState$).pipe(share())
         const disconnect$ = conn.close$.pipe(mapTo({ type: ClientMessageType.disconnect as const }))
-        return ClientManagerFacade.create(injector, conn.clientId, message$, disconnect$)
+        return ClientManagerFacade.create(
+          injector,
+          conn.clientId,
+          conn.profile.entityDefKey,
+          message$,
+          disconnect$,
+        )
       }),
       share(),
     )
@@ -134,7 +141,10 @@ export class ServerPlayerManager {
             useValue: client,
           },
         ])
-        const entityScope = createEntityScope({ entityId: client.clientId })
+        const entityScope = createEntityScope({
+          entityId: client.clientId,
+          entityDefKey: client.entityDefKey,
+        })
         const childInjector = clientInjector.createChild(entityScope, this.serverPlayerEntityProviders(client))
         const playerScope = createPlayerScope({ playerId: client.clientId })
         const playerInjector = childInjector.createChild(playerScope, this.serverPlayerProviders())
@@ -164,13 +174,23 @@ export class ServerPlayerManager {
 
   protected static serverPlayerEntityProviders(
     client: ServerPlayerClient,
-  ): [Provider<Observable<EntityControlState>>, Provider<EntityTransformCalculationTrigger$>] {
+  ): [
+    Provider<Observable<EntityControlState>>,
+    Provider<EntityTransformCalculationTrigger$>,
+    Provider<EntityProfile>,
+  ] {
     return [
       {
         provide: EntityControlState$,
         useValue: client.message$.pipe(pluck('controlState')),
       },
       ControlledEntityTransformCalculation,
+      {
+        provide: EntityProfile,
+        useValue: {
+          entityDefKey: client.entityDefKey,
+        },
+      },
     ]
   }
 

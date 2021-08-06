@@ -3,26 +3,13 @@ import { silence } from '@mp-server/common/rxjs'
 import { ClientConfig$, ClientControlStateChange, ClientMessageType, ClientScope } from '@mp-server/shared/client'
 import { EntityControlState$ } from '@mp-server/shared/entity'
 import { TickUpdate$ } from '@mp-server/shared/server'
-import {
-  filter,
-  from,
-  map,
-  merge,
-  mergeMap,
-  Observable,
-  pluck,
-  share,
-  switchMap,
-  take,
-  withLatestFrom,
-} from 'rxjs'
+import { filter, from, map, merge, mergeMap, Observable, share, switchMap, take, withLatestFrom } from 'rxjs'
 
 import { GameClientConnection } from '../../game-client-connection'
 
 import { AvatarManager, avatarManagerFactory } from '../avatar'
 
 import { ClientControlsManager } from './client-controls-manager'
-
 import { DebugDisplay } from './debug-display'
 import { GameDom } from './game-dom'
 
@@ -37,9 +24,14 @@ export class GameUi {
   protected static initAvatars(injector: Injector, conn: GameClientConnection): Observable<AvatarManager> {
     const viaInitialEntities$ = conn.config$.pipe(
       take(1),
-      switchMap((config) => from(config.initialEntityIds)),
+      switchMap((config) => from(config.initialEntities)),
     )
-    const viaAddEntity$ = conn.addEntity$.pipe(pluck('entityId'))
+    const viaAddEntity$ = conn.addEntity$.pipe(
+      map(({ entityId, entityProfile }) => ({
+        entityId,
+        entityDefKey: entityProfile.entityDefKey,
+      })),
+    )
     const createAvatarManager = avatarManagerFactory.bind(undefined, injector)
     return merge(viaInitialEntities$, viaAddEntity$).pipe(mergeMap(createAvatarManager), share())
   }

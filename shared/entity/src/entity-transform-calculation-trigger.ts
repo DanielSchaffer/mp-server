@@ -1,16 +1,12 @@
 import { Provider } from '@dandi/core'
 import { hasOwnProperty } from '@mp-server/common'
 import { SubtickTiming, SubtickTiming$ } from '@mp-server/shared'
-import {
-  EntityControlState,
-  EntityControlState$,
-  EntityScope,
-  SubtickTimedEntityStateTracking,
-  TickTimedEntityState$,
-} from '@mp-server/shared/entity'
 import { filter, map, Observable, withLatestFrom } from 'rxjs'
 import { share } from 'rxjs/operators'
 
+import { EntityScope } from './entity'
+import { EntityControlState, EntityControlState$ } from './entity-control-state'
+import { SubtickTimedEntityStateTracking, TickTimedEntityState$ } from './entity-state'
 import { localToken } from './local-token'
 
 /**

@@ -64,12 +64,17 @@ export class GameServer implements WebSocketService {
     return playerManager.connectionEvent$.pipe(
       withLatestFrom(tick$),
       map(([connectionEvent, tick]): EntityMessage => {
-        const type =
-          connectionEvent.type === ConnectionEventType.connect
-            ? ServerMessageType.addEntity
-            : ServerMessageType.removeEntity
+        const entityId = connectionEvent.player.clientId
+        if (connectionEvent.type === ConnectionEventType.connect) {
+          return {
+            type: ServerMessageType.addEntity,
+            entityId,
+            tick,
+            entityProfile: { entityDefKey: connectionEvent.player.entityDefKey },
+          }
+        }
         return {
-          type,
+          type: ServerMessageType.removeEntity,
           entityId: connectionEvent.player.clientId,
           tick,
         }

@@ -1,12 +1,12 @@
 import { EntryPoint, Inject, Injectable, Injector, Logger } from '@dandi/core'
 import { silence } from '@mp-server/common/rxjs'
 import { TickTiming$ } from '@mp-server/shared'
-import { ClientConfig$, ClientId, createClientScope } from '@mp-server/shared/client'
+import { ClientConfig$, ClientId, ClientProfile, createClientScope } from '@mp-server/shared/client'
+import { Vehicle } from '@mp-server/shared/entities'
 import { TickUpdate$ } from '@mp-server/shared/server'
 import { from, merge, mergeMap, Observable, pluck, share, shareReplay } from 'rxjs'
 
 import { GameClientConnection } from './game-client-connection'
-
 import { WebSocketClient } from './lib/ws'
 import { GameScope, GameUi } from './ui/game'
 
@@ -20,11 +20,20 @@ export class GameClientApplication implements EntryPoint {
     const clientId: ClientId = `iam${Math.random().toFixed(6)}`
     const gameInjector = injector.createChild(GameScope)
 
-    const clientScope = createClientScope({ clientId })
+    const clientScope = createClientScope({
+      clientId,
+      entityDefKey: Vehicle.key,
+    })
     const clientInjector = gameInjector.createChild(clientScope, [
       {
         provide: ClientId,
         useValue: clientId,
+      },
+      {
+        provide: ClientProfile,
+        useValue: {
+          entityDefKey: Vehicle.key,
+        },
       },
       {
         provide: ClientConfig$,

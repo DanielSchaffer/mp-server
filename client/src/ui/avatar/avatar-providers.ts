@@ -12,7 +12,7 @@ import { GameClientConnection } from '../../game-client-connection'
 
 import { ClientControlsManager } from '../game'
 
-import { AvatarData, AvatarEntityId, AvatarEntityTransformCalculationTriggerProviders } from './avatar'
+import { AvatarData, AvatarEntityConditionalProviders, AvatarEntityId } from './avatar'
 
 function avatarDataFactory(config$: ClientConfig$, avatarEntityId: AvatarEntityId): Promise<AvatarData> {
   const data$ = config$.pipe(
@@ -37,9 +37,7 @@ const TickTimedEntityState$Provider: Provider<TickTimedEntityState$> = {
   deps: [GameClientConnection, AvatarEntityId],
 }
 
-function avatarEntityTransformCalculationTriggerProvidersFactory({
-  isLocalClient,
-}: AvatarData): AvatarEntityTransformCalculationTriggerProviders {
+function avatarEntityConditionalProvidersFactory({ isLocalClient }: AvatarData): AvatarEntityConditionalProviders {
   return isLocalClient
     ? [
         ControlledValidatedEntityTransformCalculation,
@@ -52,7 +50,7 @@ function avatarEntityTransformCalculationTriggerProvidersFactory({
 export type AvatarProviders = [
   Provider<EntityId>,
   Provider<AvatarData>,
-  Provider<AvatarEntityTransformCalculationTriggerProviders>,
+  Provider<AvatarEntityConditionalProviders>,
 ]
 
 export function avatarProviders(entityId: EntityId): AvatarProviders {
@@ -68,8 +66,8 @@ export function avatarProviders(entityId: EntityId): AvatarProviders {
       deps: [ClientConfig$, AvatarEntityId],
     },
     {
-      provide: AvatarEntityTransformCalculationTriggerProviders,
-      useFactory: avatarEntityTransformCalculationTriggerProvidersFactory,
+      provide: AvatarEntityConditionalProviders,
+      useFactory: avatarEntityConditionalProvidersFactory,
       deps: [AvatarData],
     },
   ]

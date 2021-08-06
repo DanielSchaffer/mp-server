@@ -31,6 +31,7 @@ const KEY_MAPPINGS: KeyMappings = {
   ArrowLeft: ['rotationLeft', 1, 0],
   ArrowRight: ['rotationRight', 1, 0],
   Space: ['fire', true, false],
+  Alt: ['altFire', true, false],
 }
 
 @Injectable(ClientInput)

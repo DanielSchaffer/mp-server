@@ -1,14 +1,16 @@
 import { Provider } from '@dandi/core'
-import { EntityId } from '@mp-server/shared/entity'
+import { EntityScopeData } from '@mp-server/shared/entity'
 import { Observable } from 'rxjs'
 
 import { ClientId, ClientScope } from './client'
+import { ClientProfile } from './client-profile'
 import { localToken } from './local-token'
 
 export interface ClientConfig {
   clientId: ClientId
   tickInterval: number
-  initialEntityIds: EntityId[]
+  initialEntities: EntityScopeData[]
+  profile: ClientProfile
 }
 
 export type ClientConfig$ = Observable<ClientConfig>

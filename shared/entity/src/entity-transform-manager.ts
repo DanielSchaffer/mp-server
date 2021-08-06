@@ -12,7 +12,7 @@ import {
   EntityTransformCalculationTrigger$,
   isReportedTransformTrigger,
 } from './entity-transform-calculation-trigger'
-import { DEFAULT_TRANSFORM_CONFIG, EntityTransformConfig } from './entity-transform-config'
+import { EntityTransformConfig } from './entity-transform-config'
 
 const ORIENTATION_Y_OFFSET_DEGREES = 90
 const DEGREES_TO_RADS_DIVISOR = 180
@@ -23,7 +23,7 @@ export class EntityTransformManager {
   public readonly transform$: Observable<TrackedSubtickTimedEntityState>
 
   protected static calculateRotation(
-    config: EntityTransformConfig,
+    transformConfig: EntityTransformConfig,
     fromTransform: EntityTransform,
     control: EntityControlState,
   ): ChangedContainer<EntityRotation, Point> {
@@ -33,7 +33,7 @@ export class EntityTransformManager {
     //   TRANSFORM_CONFIG.rotationDeceleration
     // const rotationAcceleration = rotationBaseAcceleration * relativeRotation
     // const rotationRate = fromTransform.rotation.rate.y + (TRANSFORM_CONFIG.maxRotationRate * timingMultiplier)
-    const rotationRate = relativeRotation * config.maxRotationRate
+    const rotationRate = relativeRotation * transformConfig.maxRotationRate
     // const finalRotationRate = rotationRate > TRANSFORM_CONFIG.maxRotationRate ? TRANSFORM_CONFIG.maxRotationRate : rotationRate
     return {
       // acceleration: { x: 0, y: rotationAcceleration, z: 0 },
@@ -52,13 +52,13 @@ export class EntityTransformManager {
   }
 
   protected static calculateAcceleration(
-    config: EntityTransformConfig,
+    transformConfig: EntityTransformConfig,
     prevAcceleration: Point,
     orientation: Point,
     control: EntityControlState,
   ): Changed<Point> {
     const relativeAcceleration = control.backwardAcceleration - control.forwardAcceleration
-    const baseAcceleration = relativeAcceleration < 0 ? config.acceleration : config.deceleration
+    const baseAcceleration = relativeAcceleration < 0 ? transformConfig.acceleration : transformConfig.deceleration
     const accelerationRate = baseAcceleration * relativeAcceleration
     const angleRads = (orientation.y + ORIENTATION_Y_OFFSET_DEGREES) * (Math.PI / DEGREES_TO_RADS_DIVISOR)
     return Point.isChanged(prevAcceleration, {
@@ -74,7 +74,7 @@ export class EntityTransformManager {
   }
 
   protected static calculateOrientation(
-    config: EntityTransformConfig,
+    transformConfig: EntityTransformConfig,
     fromTransform: EntityTransform,
     rotation: EntityRotation,
     timedelta: number,
@@ -86,7 +86,7 @@ export class EntityTransformManager {
   }
 
   protected static initTransform(
-    config: EntityTransformConfig,
+    transformConfig: EntityTransformConfig,
     transformTrigger$: EntityTransformCalculationTrigger$,
   ): Observable<TrackedSubtickTimedEntityState> {
     return transformTrigger$.pipe(
@@ -114,17 +114,17 @@ export class EntityTransformManager {
 
         const fromTransform = timing.isNewTick ? lastTickTransform : previous.transform
 
-        const rotation = this.calculateRotation(config, fromTransform, control)
-        const orientation = this.calculateOrientation(config, fromTransform, rotation, timing.timedelta)
+        const rotation = this.calculateRotation(transformConfig, fromTransform, control)
+        const orientation = this.calculateOrientation(transformConfig, fromTransform, rotation, timing.timedelta)
         const acceleration = this.calculateAcceleration(
-          config,
+          transformConfig,
           previous.transform.movement.acceleration,
           orientation,
           control,
         )
 
         const velocityIncrement = this.calculateVelocityIncrement(acceleration, timing.timedelta)
-        const velocity = Point.add(fromTransform.movement.velocity, velocityIncrement, config.maxVelocity)
+        const velocity = Point.add(fromTransform.movement.velocity, velocityIncrement, transformConfig.maxVelocity)
         const locationIncrement = Point.multiply(velocity, timing.timedelta)
         const location = Point.add(fromTransform.position.location, locationIncrement)
 
@@ -154,8 +154,10 @@ export class EntityTransformManager {
   }
 
   constructor(
-    @Inject(EntityTransformCalculationTrigger$) public transformTrigger$: EntityTransformCalculationTrigger$,
+    @Inject(EntityTransformCalculationTrigger$)
+    public readonly transformTrigger$: EntityTransformCalculationTrigger$,
+    @Inject(EntityTransformConfig) public readonly transformConfig: EntityTransformConfig,
   ) {
-    this.transform$ = EntityTransformManager.initTransform(DEFAULT_TRANSFORM_CONFIG, transformTrigger$)
+    this.transform$ = EntityTransformManager.initTransform(transformConfig, transformTrigger$)
   }
 }

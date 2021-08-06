@@ -2,6 +2,8 @@ import { NODE_ENV } from '@dandi/common'
 import { AmbientInjectableScanner, DandiApplication } from '@dandi/core'
 import { ConsoleLogListener, DefaultLogging, LoggingModule } from '@dandi/core/logging'
 import { LogLevel } from '@dandi/core/types'
+import { EntitiesModule } from '@mp-server/shared/entities'
+import { EntitySharedModule } from '@mp-server/shared/entity'
 
 import { GameClientApplication } from './game-client-application'
 import { UiModule } from './lib/ui'
@@ -29,5 +31,7 @@ export const client = new DandiApplication({
     GameClientApplication,
     AvatarModule,
     ClientUiGameModule.useInput(KeyboardInput),
+    EntitySharedModule,
+    EntitiesModule.withAllEntities(),
   ],
 })

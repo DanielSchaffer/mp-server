@@ -2,6 +2,7 @@ import { InjectionScope, Injector } from '@dandi/core'
 import {
   Entity,
   EntityId,
+  EntityProfile,
   EntityScopeRequiredProviders,
   EntityTransformCalculationTrigger$,
 } from '@mp-server/shared/entity'
@@ -9,7 +10,7 @@ import { filter, mapTo, shareReplay, take } from 'rxjs'
 
 import { GameClientConnection } from '../../game-client-connection'
 
-import { AvatarEntityTransformCalculationTriggerProviders } from './avatar'
+import { AvatarEntityConditionalProviders } from './avatar'
 
 // function entityTickStateFactory(
 //   avatarData: AvatarData,
@@ -50,12 +51,12 @@ import { AvatarEntityTransformCalculationTriggerProviders } from './avatar'
 function entityTransformCalculationTriggerFactory(
   injector: Injector,
   scope: InjectionScope,
-  providers: AvatarEntityTransformCalculationTriggerProviders,
+  providers: AvatarEntityConditionalProviders,
 ): Promise<EntityTransformCalculationTrigger$> {
   return injector.createChild(scope, providers).inject(EntityTransformCalculationTrigger$)
 }
 
-function entityFactory(conn: GameClientConnection, entityId: EntityId): Entity {
+function entityFactory(conn: GameClientConnection, entityId: EntityId, { entityDefKey }: EntityProfile): Entity {
   const destroy$ = conn.removeEntity$.pipe(
     filter((remove) => remove.entityId === entityId),
     mapTo(undefined),
@@ -64,6 +65,7 @@ function entityFactory(conn: GameClientConnection, entityId: EntityId): Entity {
   )
   return {
     entityId,
+    entityDefKey,
     destroy$,
   }
 }
@@ -72,36 +74,25 @@ export const AvatarEntityProviders = [
   {
     provide: Entity,
     useFactory: entityFactory,
-    deps: [GameClientConnection, EntityId],
+    deps: [GameClientConnection, EntityId, EntityProfile],
   },
   {
     provide: EntityTransformCalculationTrigger$,
     useFactory: entityTransformCalculationTriggerFactory,
     async: true,
-    deps: [Injector, InjectionScope, AvatarEntityTransformCalculationTriggerProviders],
+    deps: [Injector, InjectionScope, AvatarEntityConditionalProviders],
   },
-  // {
-  //   provide: TimedEntityTickState$,
-  //   useFactory: entityTickStateFactory,
-  //   deps: [AvatarData, TickUpdate$],
-  // },
-  // {
-  //   provide: EntityControlState$,
-  //   useFactory: entityControlStateFactory,
-  //   deps: [AvatarData, TimedEntityTickState$, ClientControlsManager],
-  // },
-  // {
-  //   provide: EntityTickTransform$,
-  //   useFactory: entityTickTransformFactory,
-  //   deps: [TimedEntityTickState$],
-  // },
 ]
 
-export function avatarEntityProviders(entityId: EntityId): EntityScopeRequiredProviders {
+export function avatarEntityProviders(entityId: EntityId, entityDefKey: string): EntityScopeRequiredProviders {
   return {
     entityId: {
       provide: EntityId,
       useValue: entityId,
+    },
+    entityProfile: {
+      provide: EntityProfile,
+      useValue: { entityDefKey },
     },
   }
 }

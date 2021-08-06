@@ -15,6 +15,7 @@ module.exports = {
       '@mp-server/common/rxjs': resolve(__dirname, '../common/rxjs'),
       '@mp-server/shared': resolve(__dirname, '../shared'),
       '@mp-server/shared/client': resolve(__dirname, '../shared/client'),
+      '@mp-server/shared/entities': resolve(__dirname, '../shared/entities'),
       '@mp-server/shared/entity': resolve(__dirname, '../shared/entity'),
       '@mp-server/shared/player': resolve(__dirname, '../shared/player'),
       '@mp-server/shared/server': resolve(__dirname, '../shared/server'),

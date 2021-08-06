@@ -6,7 +6,14 @@ import { Injector, Logger, Provider, ScopeBehavior } from '@dandi/core'
 import { WebSocketCloseCode, WebSocketConnection, WebSocketConnectionClose } from '@dandi/websockets'
 import { defineScope, scopeInstanceFactory } from '@mp-server/common/dandi'
 import { json } from '@mp-server/shared'
-import { ClientId, ClientMessage, ClientMessageType, ClientRegistration } from '@mp-server/shared/client'
+import {
+  ClientId,
+  ClientMessage,
+  ClientMessageType,
+  ClientProfile,
+  ClientRegistration,
+} from '@mp-server/shared/client'
+import { EntityDefRegistry } from '@mp-server/shared/entity'
 import { ServerMessage, ServerMessageType } from '@mp-server/shared/server'
 
 import {
@@ -32,6 +39,7 @@ import { ServerPlayerManager } from './server-player-manager'
 
 function clientSocketConnectionFactory(
   config: GameServerConfig,
+  entityDefs: EntityDefRegistry,
   conn: WebSocketConnection,
   playerManager: ServerPlayerManager,
   logger: Logger,
@@ -51,16 +59,27 @@ function clientSocketConnectionFactory(
       return false
     }),
     withLatestFrom(playerManager.connectedPlayers$),
-    mergeMap(([{ clientId }, connectedPlayers]) => {
-      const clientConn = new ClientSocketConnection(conn, clientId, message$)
-      logger.debug('received client registration', { clientId })
+    mergeMap(([{ clientId, profile }, connectedPlayers]) => {
+      if (!entityDefs.has(profile.entityDefKey)) {
+        conn.close(WebSocketCloseCode.internalError, 'Invalid entityDefKey')
+        return of(undefined)
+      }
+      const clientConn = new ClientSocketConnection(conn, clientId, profile, message$)
+      logger.debug('received client registration', {
+        clientId,
+        profile,
+      })
       const clientInit$ = clientConn
         .send({
           type: ServerMessageType.clientInit,
           config: {
             clientId,
             tickInterval: config.tickInterval,
-            initialEntityIds: connectedPlayers.map(({ clientId }) => clientId),
+            initialEntities: connectedPlayers.map(({ clientId, entityDefKey }) => ({
+              entityId: clientId,
+              entityDefKey,
+            })),
+            profile,
           },
         })
         .pipe(
@@ -119,7 +138,7 @@ export class ClientSocketConnection implements WebSocketConnection<ClientMessage
     return {
       provide: ClientSocketConnection$,
       useFactory: clientSocketConnectionFactory,
-      deps: [GameServerConfig, WebSocketConnection, ServerPlayerManager, Logger],
+      deps: [GameServerConfig, EntityDefRegistry, WebSocketConnection, ServerPlayerManager, Logger],
       providers: [
         {
           provide: WebSocketConnection,
@@ -133,6 +152,7 @@ export class ClientSocketConnection implements WebSocketConnection<ClientMessage
   constructor(
     protected readonly conn: WebSocketConnection,
     public readonly clientId: ClientId,
+    public readonly profile: ClientProfile,
     clientMessage$: Observable<ClientMessage>,
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

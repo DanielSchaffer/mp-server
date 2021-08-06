@@ -23,6 +23,7 @@
       "@mp-server/common/dandi": ["./common/dandi"],
       "@mp-server/common/rxjs": ["./common/rxjs"],
       "@mp-server/shared/client": ["./shared/client"],
+      "@mp-server/shared/entities": ["./shared/entities"],
       "@mp-server/shared/entity": ["./shared/entity"],
       "@mp-server/shared/player": ["./shared/player"],
       "@mp-server/shared/server": ["./shared/server"],

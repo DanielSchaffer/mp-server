@@ -1,6 +1,12 @@
 import { Inject, Injectable, Injector, Logger, RestrictScope } from '@dandi/core'
 import { silence } from '@mp-server/common/rxjs'
-import { createEntityInjector, Entity, EntityScope, EntityTransformManager } from '@mp-server/shared/entity'
+import {
+  createEntityInjector,
+  Entity,
+  EntityScope,
+  EntityScopeData,
+  EntityTransformManager,
+} from '@mp-server/shared/entity'
 import { from, map, Observable, shareReplay, takeUntil, tap, withLatestFrom } from 'rxjs'
 
 import { GameDom } from '../game/game-dom'
@@ -25,14 +31,18 @@ export interface AvatarManager {
 
 export function avatarManagerFactory(
   injector: Injector,
-  avatarEntityId: AvatarEntityId,
+  { entityId, entityDefKey }: EntityScopeData,
 ): Observable<AvatarManager> {
+  const avatarEntityId = entityId
   const avatarScope = createAvatarScope({ avatarEntityId })
   const avatarInjector = injector.createChild(avatarScope, avatarProviders(avatarEntityId))
   const avatarEntityInjector = createEntityInjector(
     avatarInjector,
-    { entityId: avatarEntityId },
-    avatarEntityProviders(avatarEntityId),
+    {
+      entityId: avatarEntityId,
+      entityDefKey,
+    },
+    avatarEntityProviders(avatarEntityId, entityDefKey),
   )
   return from(avatarEntityInjector.inject(AvatarManagerImpl) as Promise<AvatarManager>).pipe(shareReplay(1))
 }

@@ -35,15 +35,14 @@ export interface Avatar extends AvatarData, EntityState {
   el: HTMLDivElement
 }
 
-export type AvatarEntityTransformCalculationTriggerProviders = [
+export type AvatarEntityConditionalProviders = [
   Provider<EntityTransformCalculationTrigger$>,
   ...Provider<unknown>[]
 ]
-export const AvatarEntityTransformCalculationTriggerProviders =
-  localToken.opinionated<AvatarEntityTransformCalculationTriggerProviders>(
-    'AvatarEntityTransformCalculationTriggerProviders',
-    {
-      multi: false,
-      restrictScope: AvatarScope,
-    },
-  )
+export const AvatarEntityConditionalProviders = localToken.opinionated<AvatarEntityConditionalProviders>(
+  'AvatarEntityConditionalProviders',
+  {
+    multi: false,
+    restrictScope: AvatarScope,
+  },
+)

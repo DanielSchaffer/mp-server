@@ -8,13 +8,13 @@ import {
 import { expect } from 'chai'
 
 const config: EntityTransformConfig = {
-  pxPerM: 100, // 100px = 1m
-  maxVelocity: 100, // m/s
-  acceleration: 10, // m/s/s
-  deceleration: 5, // m/s/s
-  maxRotationRate: 10, // º/s
-  rotationAcceleration: 10, // º/s/s
-  rotationDeceleration: 10, // º/s/s
+  initialVelocity: 0,
+  maxVelocity: 100,
+  acceleration: 10,
+  deceleration: 5,
+  maxRotationRate: 10,
+  rotationAcceleration: 10,
+  rotationDeceleration: 10,
 }
 
 class EntityTransformManagerFacade extends EntityTransformManager {

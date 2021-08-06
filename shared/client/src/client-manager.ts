@@ -21,12 +21,17 @@ export class ClientManagerFacade<TMessage = unknown, TDisconnect extends TMessag
   public static create<TMessage = unknown, TDisconnect extends TMessage | unknown = unknown>(
     injector: Injector,
     clientId: ClientId,
+    entityDefKey: string,
     message$: Observable<TMessage>,
     disconnect$: Observable<TDisconnect>,
   ): ClientManager<TMessage, TDisconnect> {
-    const scope = createClientScope({ clientId })
+    const scope = createClientScope({
+      clientId,
+      entityDefKey,
+    })
     const client: Client<TMessage, TDisconnect> = {
       clientId,
+      entityDefKey,
       message$,
       disconnect$,
     }

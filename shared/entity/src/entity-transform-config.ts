@@ -1,25 +1,31 @@
-export interface EntityTransformConfig {
-  pxPerM: number
-  maxVelocity: number
-  acceleration: number
-  deceleration: number
-  maxRotationRate: number
-  rotationAcceleration: number
-  rotationDeceleration: number
-}
+import { Provider } from '@dandi/core'
 
-/* eslint-disable @typescript-eslint/no-magic-numbers */
+import { EntityScope } from './entity'
+import { EntityDefRegistry } from './entity-def-registry'
+import { EntityProfile } from './entity-profile'
+import { localToken } from './local-token'
+
 /**
- *
+ * 100px = 1m
  */
-export const DEFAULT_TRANSFORM_CONFIG: EntityTransformConfig = {
-  pxPerM: 100, // 100px = 1m
-  maxVelocity: 150, // m/s
-  acceleration: 50, // m/s/s
-  deceleration: 75, // m/s/s
-  maxRotationRate: 125, // º/s
-  rotationAcceleration: 10, // º/s/s
-  rotationDeceleration: 15, // º/s/s
+export interface EntityTransformConfig {
+  initialVelocity: number // m/s
+  maxVelocity: number // m/s
+  acceleration: number // m/s/s
+  deceleration: number // m/s/s
+  maxRotationRate: number // º/s
+  rotationAcceleration: number // º/s/s
+  rotationDeceleration: number // º/s/s
 }
 
-/* eslint-enable @typescript-eslint/no-magic-numbers */
+export const EntityTransformConfig = localToken.opinionated<EntityTransformConfig>('EntityTransformConfig', {
+  multi: false,
+  restrictScope: EntityScope,
+})
+
+export const EntityTransformConfigProvider: Provider<EntityTransformConfig> = {
+  provide: EntityTransformConfig,
+  useFactory: (entityDefs: EntityDefRegistry, profile: EntityProfile): EntityTransformConfig =>
+    entityDefs.get(profile.entityDefKey)?.config,
+  deps: [EntityDefRegistry, EntityProfile],
+}
