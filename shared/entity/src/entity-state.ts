@@ -21,6 +21,12 @@ export interface TimedEntityState<TTiming extends TickTiming> extends EntityStat
 }
 
 export type TickTimedEntityState = TimedEntityState<TickTiming>
+export type SubtickTimedEntityState = TimedEntityState<SubtickTiming>
+
+export interface EntityStateReport {
+  transform: ChangedContainer<EntityTransform, Point>
+  timing: TickTiming
+}
 
 export type TickTimedEntityState$ = Observable<TickTimedEntityState>
 export const TickTimedEntityState$ = localToken.opinionated<TickTimedEntityState$>('TickTimedEntityState$', {
@@ -28,14 +34,9 @@ export const TickTimedEntityState$ = localToken.opinionated<TickTimedEntityState
   restrictScope: EntityScope,
 })
 
-export interface TimedEntityStateTracking<TTiming extends TickTiming>
+export interface TimedEntityStateReporting<TTiming extends TickTiming>
   extends Omit<TimedEntityState<TTiming>, 'transform'> {
-  lastTickTransform: ChangedContainer<EntityTransform, Point>
+  report: EntityStateReport
 }
 
-export type SubtickTimedEntityStateTracking = TimedEntityStateTracking<SubtickTiming>
-
-export type TrackedTimedEntityState<TTiming extends TickTiming> = TimedEntityState<TTiming> &
-  TimedEntityStateTracking<TTiming>
-
-export type TrackedSubtickTimedEntityState = TrackedTimedEntityState<SubtickTiming>
+export type ReportedSubtickTimedEntityStateTracking = TimedEntityStateReporting<SubtickTiming>

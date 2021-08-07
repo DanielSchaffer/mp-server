@@ -15,7 +15,7 @@ export interface SubtickTiming extends TickTiming {
    */
   subtick: number
   subtickTimestamp: number
-  timedelta: number
+  subtickTimeDelta: number
 
   lastTickFrame?: number
   nextTickFrame?: number
@@ -49,25 +49,25 @@ export function subtick(tick$: TickTiming$, subtickTimingSource$: SubtickTimingS
           nextTickFrame: subtickTimestamp + tickInterval,
           elapsed: timing.elapsed,
           timestamp: timing.timestamp,
-          timedelta: 0,
+          subtickTimeDelta: 0,
         })
       }
 
-      const timedeltaMs = subtickTimestamp - result.subtickTimestamp
-      const timedelta = timedeltaMs / MS_PER_SECOND
+      const subtickTimeDeltaMs = subtickTimestamp - result.subtickTimestamp
+      const subtickTimeDelta = subtickTimeDeltaMs / MS_PER_SECOND
 
       if (result.tick === tick) {
         const { lastTickFrame, nextTickFrame } = result
         const subtick = 1 - (nextTickFrame - subtickTimestamp) / (nextTickFrame - lastTickFrame)
-        const timestamp = result.timestamp + timedeltaMs
-        const elapsed = result.elapsed + timedeltaMs
+        const timestamp = result.timestamp + subtickTimeDeltaMs
+        const elapsed = result.elapsed + subtickTimeDeltaMs
         return Object.assign(shared, {
           lastTickFrame,
           nextTickFrame,
           subtick,
           timestamp,
           elapsed,
-          timedelta,
+          subtickTimeDelta,
         })
       }
 
@@ -81,7 +81,7 @@ export function subtick(tick$: TickTiming$, subtickTimingSource$: SubtickTimingS
         nextTickFrame: subtickTimestamp + tickInterval,
         elapsed: timing.elapsed,
         timestamp: timing.timestamp,
-        timedelta,
+        subtickTimeDelta,
       })
     }, undefined),
     share(),

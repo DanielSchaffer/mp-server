@@ -43,7 +43,7 @@ describe.marbles('subtickTiming', ({ cold }) => {
         subtickTimestamp: 0,
         lastTickFrame: 0,
         nextTickFrame: 2000,
-        timedelta: 0,
+        subtickTimeDelta: 0,
       },
       b: {
         tick: 0,
@@ -55,7 +55,7 @@ describe.marbles('subtickTiming', ({ cold }) => {
         subtickTimestamp: 1000,
         lastTickFrame: 0,
         nextTickFrame: 2000,
-        timedelta: 1,
+        subtickTimeDelta: 1,
       },
       c: {
         tick: 1,
@@ -67,7 +67,7 @@ describe.marbles('subtickTiming', ({ cold }) => {
         subtickTimestamp: 2000,
         lastTickFrame: 2000,
         nextTickFrame: 4000,
-        timedelta: 1,
+        subtickTimeDelta: 1,
       },
       d: {
         tick: 1,
@@ -79,7 +79,7 @@ describe.marbles('subtickTiming', ({ cold }) => {
         subtickTimestamp: 3000,
         lastTickFrame: 2000,
         nextTickFrame: 4000,
-        timedelta: 1,
+        subtickTimeDelta: 1,
       },
       e: {
         tick: 2,
@@ -91,7 +91,7 @@ describe.marbles('subtickTiming', ({ cold }) => {
         subtickTimestamp: 4000,
         lastTickFrame: 4000,
         nextTickFrame: 6000,
-        timedelta: 1,
+        subtickTimeDelta: 1,
       },
       f: {
         tick: 2,
@@ -103,7 +103,7 @@ describe.marbles('subtickTiming', ({ cold }) => {
         subtickTimestamp: 5000,
         lastTickFrame: 4000,
         nextTickFrame: 6000,
-        timedelta: 1,
+        subtickTimeDelta: 1,
       },
       g: {
         tick: 3,
@@ -115,7 +115,7 @@ describe.marbles('subtickTiming', ({ cold }) => {
         subtickTimestamp: 6000,
         lastTickFrame: 6000,
         nextTickFrame: 8000,
-        timedelta: 1,
+        subtickTimeDelta: 1,
       },
     }
 

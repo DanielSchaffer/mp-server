@@ -6,7 +6,7 @@ import { share } from 'rxjs/operators'
 
 import { EntityScope } from './entity'
 import { EntityControlState, EntityControlState$ } from './entity-control-state'
-import { SubtickTimedEntityStateTracking, TickTimedEntityState$ } from './entity-state'
+import { ReportedSubtickTimedEntityStateTracking, TickTimedEntityState$ } from './entity-state'
 import { localToken } from './local-token'
 
 /**
@@ -20,7 +20,7 @@ export interface ControlledEntityTransformCalculationData {
 /**
  * Represents data available for a remotely controlled entity, such a remote player or NPC
  */
-export type ReportedEntityTransformCalculationData = SubtickTimedEntityStateTracking &
+export type ReportedEntityTransformCalculationData = ReportedSubtickTimedEntityStateTracking &
   ControlledEntityTransformCalculationData
 
 export type EntityTransformCalculationData =
@@ -30,7 +30,7 @@ export type EntityTransformCalculationData =
 export function isReportedTransformTrigger(
   obj: EntityTransformCalculationData,
 ): obj is ReportedEntityTransformCalculationData {
-  return hasOwnProperty(obj, 'lastTickTransform')
+  return hasOwnProperty(obj, 'report')
 }
 
 export type EntityTransformCalculationTrigger$ = Observable<EntityTransformCalculationData>
@@ -71,11 +71,15 @@ export const ControlledValidatedEntityTransformCalculation: Provider<EntityTrans
   ) {
     return subtick$.pipe(
       withLatestFrom(controlState$, entityState$),
-      map(([timing, control, entityState]) => {
+      map(([timing, control, entityState]): EntityTransformCalculationData => {
+        const report = {
+          timing,
+          transform: entityState.transform,
+        }
         return {
-          lastTickTransform: entityState.transform,
           control,
           timing,
+          report,
         }
       }),
       share(),
@@ -98,17 +102,16 @@ export const ReportedEntityTransformationCalculation: Provider<EntityTransformCa
         if (!control || !transform || !timing) {
           debugger
         }
+        const report = {
+          timing,
+          transform,
+        }
         return {
-          lastTickTransform: transform,
+          report,
           control,
           timing,
         }
       }),
-      // map(([timing, { control, transform }]) => ({
-      //   lastTickTransform: transform,
-      //   control,
-      //   timing,
-      // })),
       share(),
     )
   },

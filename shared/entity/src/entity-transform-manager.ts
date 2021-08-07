@@ -1,4 +1,4 @@
-import { Inject, Injectable, RestrictScope } from '@dandi/core'
+import { Inject, Injectable, Logger, RestrictScope } from '@dandi/core'
 import { Changed, ChangedContainer, Point } from '@mp-server/shared'
 
 import { Observable } from 'rxjs'
@@ -6,7 +6,7 @@ import { scan } from 'rxjs/operators'
 
 import { EntityScope } from './entity'
 import { EntityControlState } from './entity-control-state'
-import { TrackedSubtickTimedEntityState } from './entity-state'
+import { SubtickTimedEntityState } from './entity-state'
 import { EntityRotation, EntityTransform, INITIAL_ENTITY_TRANSFORM } from './entity-transform'
 import {
   EntityTransformCalculationTrigger$,
@@ -20,7 +20,7 @@ const WRAP_DEGREES = 360
 
 @Injectable(RestrictScope(EntityScope))
 export class EntityTransformManager {
-  public readonly transform$: Observable<TrackedSubtickTimedEntityState>
+  public readonly transform$: Observable<SubtickTimedEntityState>
 
   protected static calculateRotation(
     transformConfig: EntityTransformConfig,
@@ -88,34 +88,64 @@ export class EntityTransformManager {
   protected static initTransform(
     transformConfig: EntityTransformConfig,
     transformTrigger$: EntityTransformCalculationTrigger$,
-  ): Observable<TrackedSubtickTimedEntityState> {
+    logger: Logger,
+  ): Observable<SubtickTimedEntityState> {
     return transformTrigger$.pipe(
-      scan((previous: TrackedSubtickTimedEntityState, trigger): TrackedSubtickTimedEntityState => {
+      scan((previous: SubtickTimedEntityState, trigger): SubtickTimedEntityState => {
         const { timing, control } = trigger
-        const lastTickTransform =
-          (isReportedTransformTrigger(trigger) ? trigger.lastTickTransform : previous?.lastTickTransform) ??
-          INITIAL_ENTITY_TRANSFORM
+
         if (!previous) {
-          previous = Object.assign(
-            {
-              control,
-              timing,
-              transform: INITIAL_ENTITY_TRANSFORM,
-              lastTickTransform,
-            },
-            lastTickTransform ?? INITIAL_ENTITY_TRANSFORM,
-          )
-        }
-        if (timing.isNewTick) {
-          if (Point.hasDiff(lastTickTransform.position.location, previous.transform.position.location)) {
-            // debugger
+          previous = {
+            control,
+            timing,
+            transform: INITIAL_ENTITY_TRANSFORM,
           }
         }
 
-        const fromTransform = timing.isNewTick ? lastTickTransform : previous.transform
+        if (isReportedTransformTrigger(trigger) && timing.isNewTick) {
+          // const diff = Point.diff(previous.transform.position.location, trigger.report.transform.position.location)
+          // if (Point.absTotal(diff) > 1) {
+          //   logger.warn('out of sync', diff)
+          // }
 
-        const rotation = this.calculateRotation(transformConfig, fromTransform, control)
-        const orientation = this.calculateOrientation(transformConfig, fromTransform, rotation, timing.timedelta)
+          Object.assign(previous, {
+            transform: trigger.report.transform,
+          })
+        }
+
+        // const lastReportedState: EntityStateReport = (isReportedTransformTrigger(trigger)
+        //   ? trigger.report
+        //   : previous) ?? {
+        //   timing,
+        //   transform: INITIAL_ENTITY_TRANSFORM,
+        // }
+
+        // if (
+        //   isReportedTransformTrigger(trigger) &&
+        //   previous &&
+        //   !timing.subtick &&
+        //   timing.tick - previous.timing.tick !== 1
+        // ) {
+        //   logger.warn(`timing diff is ${timing.tick - trigger.report.timing.tick}`, {
+        //     'timing.tick': timing.tick,
+        //     'trigger.report.timing.tick': trigger.report.timing,
+        //   })
+        // }
+
+        // const fromState: EntityStateReport = timing.isNewTick ? lastReportedState : previous
+        // const fromState: EntityStateReport = timing.isNewTick ? lastReportedState : previous
+        // const timedelta = timing.isNewTick
+
+        // const fromTransform = previous.transform
+        // const fromTransform = previousTickState.transform
+
+        const rotation = this.calculateRotation(transformConfig, previous.transform, control)
+        const orientation = this.calculateOrientation(
+          transformConfig,
+          previous.transform,
+          rotation,
+          timing.subtickTimeDelta,
+        )
         const acceleration = this.calculateAcceleration(
           transformConfig,
           previous.transform.movement.acceleration,
@@ -123,10 +153,14 @@ export class EntityTransformManager {
           control,
         )
 
-        const velocityIncrement = this.calculateVelocityIncrement(acceleration, timing.timedelta)
-        const velocity = Point.add(fromTransform.movement.velocity, velocityIncrement, transformConfig.maxVelocity)
-        const locationIncrement = Point.multiply(velocity, timing.timedelta)
-        const location = Point.add(fromTransform.position.location, locationIncrement)
+        const velocityIncrement = this.calculateVelocityIncrement(acceleration, timing.subtickTimeDelta)
+        const velocity = Point.add(
+          previous.transform.movement.velocity,
+          velocityIncrement,
+          transformConfig.maxVelocity,
+        )
+        const locationIncrement = Point.multiply(velocity, timing.subtickTimeDelta)
+        const location = Point.add(previous.transform.position.location, locationIncrement)
 
         const movement = {
           acceleration,
@@ -147,7 +181,6 @@ export class EntityTransformManager {
           control,
           timing,
           transform,
-          lastTickTransform: fromTransform,
         }
       }, undefined),
     )
@@ -155,9 +188,10 @@ export class EntityTransformManager {
 
   constructor(
     @Inject(EntityTransformCalculationTrigger$)
-    public readonly transformTrigger$: EntityTransformCalculationTrigger$,
-    @Inject(EntityTransformConfig) public readonly transformConfig: EntityTransformConfig,
+    protected readonly transformTrigger$: EntityTransformCalculationTrigger$,
+    @Inject(EntityTransformConfig) protected readonly transformConfig: EntityTransformConfig,
+    @Inject(Logger) protected readonly logger: Logger,
   ) {
-    this.transform$ = EntityTransformManager.initTransform(transformConfig, transformTrigger$)
+    this.transform$ = EntityTransformManager.initTransform(transformConfig, transformTrigger$, logger)
   }
 }
