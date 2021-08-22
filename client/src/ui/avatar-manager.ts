@@ -8,7 +8,7 @@ import {
   SpawnedEntity,
   SpawnedEntity$,
 } from '@mp-server/shared/entity'
-import { map, mergeMap, Observable, shareReplay, tap, withLatestFrom } from 'rxjs'
+import { map, mergeMap, Observable, shareReplay, takeUntil, tap, withLatestFrom } from 'rxjs'
 
 import { Avatar } from './avatar'
 import { ClientEntityData } from './client-entity'
@@ -19,7 +19,6 @@ export interface AvatarManager {
   readonly el$: Observable<HTMLDivElement>
   readonly avatar$: Observable<Avatar>
   readonly animate$: Observable<never>
-  readonly destroy$: Observable<unknown>
 
   readonly entityId: EntityId
   readonly isLocalClient: boolean
@@ -46,7 +45,6 @@ export function avatarManagerFactory(entity: SpawnedEntity): Observable<AvatarMa
 export class AvatarManagerImpl implements AvatarManager {
   public readonly el$: Observable<HTMLDivElement>
   public readonly avatar$: Observable<Avatar>
-  public readonly destroy$: Observable<unknown>
   public readonly animate$: Observable<never>
 
   public readonly isLocalClient: boolean
@@ -58,24 +56,23 @@ export class AvatarManagerImpl implements AvatarManager {
     clientEntityData: ClientEntityData,
   ): Observable<HTMLDivElement> {
     return entity$.pipe(
-      mergeMap(
-        (entity) =>
-          new Observable<HTMLDivElement>((o) => {
-            const el = document.createElement('div')
-            const cssClasses = ['entity', `entity--${entity.def.key}`]
-            if (clientEntityData.isLocalClient) {
-              cssClasses.push('entity--local')
-            }
-            el.setAttribute('class', cssClasses.join(' '))
-            el.setAttribute('id', `entity-${entity.entityId}`)
-            dom.stage.append(el)
-            console.log('added avatar', el)
-            o.next(el)
-            return () => {
-              console.log('removed avatar')
-              el.remove()
-            }
-          }),
+      mergeMap((entity) =>
+        new Observable<HTMLDivElement>((o) => {
+          const el = document.createElement('div')
+          const cssClasses = ['entity', `entity--${entity.def.key}`]
+          if (clientEntityData.isLocalClient) {
+            cssClasses.push('entity--local')
+          }
+          el.setAttribute('class', cssClasses.join(' '))
+          el.setAttribute('id', `entity-${entity.entityId}`)
+          dom.stage.append(el)
+          console.log('added avatar', el)
+          o.next(el)
+          return () => {
+            console.log('removed avatar')
+            el.remove()
+          }
+        }).pipe(takeUntil(entity.despawn$)),
       ),
       shareReplay(1),
     )
