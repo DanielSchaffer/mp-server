@@ -1,5 +1,6 @@
 import { ExpressMvcApplication } from '@dandi-contrib/mvc-express'
 import { EntryPoint, Inject, Injectable } from '@dandi/core'
+
 import { WebSocketServiceManager } from '@dandi/websockets'
 
 @Injectable(EntryPoint)

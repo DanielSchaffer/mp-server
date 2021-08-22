@@ -5,9 +5,9 @@
     "test": "mocha"
   },
   "dependencies": {
-    "@dandi/common": "^1.0.0-alpha.72",
-    "@dandi/core": "^1.0.0-alpha.72",
-    "@dandi/logging": "^1.0.0-alpha.72",
+    "@dandi/common": "^1.0.0-alpha.75",
+    "@dandi/core": "^1.0.0-alpha.75",
+    "@dandi/logging": "^1.0.0-alpha.75",
     "colors": "^1.4.0",
     "dotenv": "^10.0.0",
     "luxon": "^1.27.0",

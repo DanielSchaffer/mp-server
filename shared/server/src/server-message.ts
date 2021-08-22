@@ -1,6 +1,6 @@
 import { TickTiming } from '@mp-server/shared'
 import { ClientConfig } from '@mp-server/shared/client'
-import { EntityId, EntityProfile } from '@mp-server/shared/entity'
+import { EntityId, EntitySpawnData } from '@mp-server/shared/entity'
 
 import { ServerMessageType } from './server-message-type'
 import { TickUpdate } from './tick-update'
@@ -14,11 +14,9 @@ export interface TickUpdateMessage extends TickUpdate {
   type: ServerMessageType.tick
 }
 
-export interface AddEntityMessage {
+export interface AddEntityMessage extends EntitySpawnData {
   type: ServerMessageType.addEntity
   tick: TickTiming
-  entityId: EntityId
-  entityProfile: EntityProfile
 }
 
 export interface RemoveEntityMessage {

@@ -10,6 +10,7 @@ import { CorsConfig, HttpPipelineModule } from '@dandi/http-pipeline'
 import { PrettyColorsLogging } from '@dandi/logging'
 import { MvcHalModule } from '@dandi/mvc-hal'
 import { MvcViewModule } from '@dandi/mvc-view'
+
 import { WebSocketServerModule } from '@dandi/websockets'
 import { SharedModule } from '@mp-server/shared'
 import { EntitiesModule } from '@mp-server/shared/entities'
@@ -70,8 +71,9 @@ export const server = new DandiApplication({
 
     GameModule.config({ tickInterval: 100 }),
     SharedModule.config({ subtickTimingSource: false }),
-    EntitySharedModule,
+    EntitySharedModule.config(),
     EntitiesModule.withAllEntities(),
+    // WeaponProjectileEntitySpawnTriggerProvider,
     // Service Implementations
   ],
 })

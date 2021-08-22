@@ -1,5 +1,5 @@
 import { ModuleBuilder, Registerable } from '@dandi/core'
-import { EntityDef, entityDefProvider } from '@mp-server/shared/entity'
+import { EntityDef, entityDefEntryProvider } from '@mp-server/shared/entity'
 
 import { localToken } from './local-token'
 import { StaticProjectile } from './static-projectile'
@@ -11,7 +11,7 @@ class EntitiesModuleBuilder extends ModuleBuilder<EntitiesModuleBuilder> {
   }
 
   public withEntities(...defs: EntityDef[]): this {
-    return this.add(...defs.map(entityDefProvider))
+    return this.add(...defs.map(entityDefEntryProvider))
   }
 
   public withAllEntities(): this {

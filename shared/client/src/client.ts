@@ -1,10 +1,9 @@
 import { defineScope, scopeInstanceFactory } from '@mp-server/common/dandi'
 import { Observable } from 'rxjs'
 
-import { ClientProfile } from './client-profile'
 import { localToken } from './local-token'
 
-export interface ClientScopeData extends ClientProfile {
+export interface ClientScopeData {
   clientId: string
 }
 
@@ -24,12 +23,22 @@ export const ClientId = localToken.opinionated<ClientId>('ClientId', {
 })
 
 export interface Client<TMessage = unknown, TDisconnect extends TMessage | unknown = unknown>
-  extends ClientScopeData {
+  extends ClientScopeData,
+    ClientProfile {
   message$: Observable<TMessage>
   disconnect$: Observable<TDisconnect>
 }
 
 export const Client = localToken.opinionated<Client>('Client', {
+  multi: false,
+  restrictScope: ClientScope,
+})
+
+export interface ClientProfile {
+  entityDefKey: string
+}
+
+export const ClientProfile = localToken.opinionated<ClientProfile>('ClientProfile', {
   multi: false,
   restrictScope: ClientScope,
 })

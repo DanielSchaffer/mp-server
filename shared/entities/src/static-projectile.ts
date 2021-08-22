@@ -11,11 +11,12 @@ const STATIC_PROJECTILE_TRANSFORM_CONFIG: EntityTransformConfig = {
   rotationDeceleration: 0,
 }
 
-/* eslint-enable @typescript-eslint/no-magic-numbers */
-
 class StaticProjectileDef {
   public static readonly key = 'static-projectile'
   public static readonly config = STATIC_PROJECTILE_TRANSFORM_CONFIG
+  public static readonly maxRange: number = 1000
 }
+
+/* eslint-enable @typescript-eslint/no-magic-numbers */
 
 export const StaticProjectile: EntityDef = StaticProjectileDef

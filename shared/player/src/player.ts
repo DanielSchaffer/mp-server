@@ -1,6 +1,6 @@
 import { defineScope, scopeInstanceFactory } from '@mp-server/common/dandi'
 import { TickTiming } from '@mp-server/shared'
-import { TimedEntityState } from '@mp-server/shared/entity'
+import { TimedEntityState, WeaponsManager } from '@mp-server/shared/entity'
 import { Observable } from 'rxjs'
 
 import { localToken } from './local-token'
@@ -18,6 +18,7 @@ export interface Player<
 > extends PlayerScopeData {
   state$: Observable<TState>
   disconnect$: Observable<TDisconnect>
+  weapons: WeaponsManager
 }
 
 const PLAYER_SCOPE = `${localToken.PKG}#Player`

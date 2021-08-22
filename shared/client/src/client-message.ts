@@ -1,8 +1,7 @@
 import { EntityControlState } from '@mp-server/shared/entity'
 
-import { ClientId } from './client'
+import { ClientId, ClientProfile } from './client'
 import { ClientMessageType } from './client-message-type'
-import { ClientProfile } from './client-profile'
 
 export interface ClientRegistration {
   type: ClientMessageType.register

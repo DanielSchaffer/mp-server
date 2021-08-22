@@ -23,20 +23,20 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@dandi/common@^1.0.0-alpha.72":
-  version "1.0.0-alpha.72"
-  resolved "https://registry.yarnpkg.com/@dandi/common/-/common-1.0.0-alpha.72.tgz#5fcb073857d7fbdfeba83508f95cec095dc237db"
-  integrity sha512-rCMWIeOmkn2EhMn1OyyH5EFyOU7lxytczOOXArRKlSB2tOZ5PoAfPV5q8t0kr1lCE8N+YB6vLyg68dHRWmch9w==
+"@dandi/common@^1.0.0-alpha.75":
+  version "1.0.0-alpha.75"
+  resolved "https://registry.yarnpkg.com/@dandi/common/-/common-1.0.0-alpha.75.tgz#2a61c2710a849ebfd8d6034ca17a8d9957ea5cb3"
+  integrity sha512-Xh8zIYhZ2guIMy+TVoHw9Lp8lG03wcfv6VfgkoQkr2ff5JfPN09vZyTFt1ctcoHN/ysIEiU532OOxyPiMEdJug==
 
-"@dandi/core@^1.0.0-alpha.72":
-  version "1.0.0-alpha.72"
-  resolved "https://registry.yarnpkg.com/@dandi/core/-/core-1.0.0-alpha.72.tgz#58d06b6c3e15d8fb1d5528c73b201fbb0bec1d1b"
-  integrity sha512-zDc5cvKbjmov4mZvCYgf+RijuysUx8W/19IVBx/7ka25V5HHn+PjdR6LgyGLsEtF5tZrxb7IboaC/nMOa62zGw==
+"@dandi/core@^1.0.0-alpha.75":
+  version "1.0.0-alpha.75"
+  resolved "https://registry.yarnpkg.com/@dandi/core/-/core-1.0.0-alpha.75.tgz#f8cb86212a9cf1d0fbfb53ba2d53da90e46ddb1c"
+  integrity sha512-vbwnjTBJgdu2nzt+IXVGHApRb55jj9ihvNt2iGag9PW7x6L8NwnAFxjyzF43/hDPL84s9qyk4axHMUmIrh7GEg==
 
-"@dandi/logging@^1.0.0-alpha.72":
-  version "1.0.0-alpha.72"
-  resolved "https://registry.yarnpkg.com/@dandi/logging/-/logging-1.0.0-alpha.72.tgz#717c2676dd2b2c616d4714433edb18fa671cd3c2"
-  integrity sha512-dQPbcqwnZjM+Zs3nzlslKI2TMnt5dOFUNlPFz32fQeC465N5SM4yUSWyR/Vi/WomKqvUStIdH9bgsexZSDgzAw==
+"@dandi/logging@^1.0.0-alpha.75":
+  version "1.0.0-alpha.75"
+  resolved "https://registry.yarnpkg.com/@dandi/logging/-/logging-1.0.0-alpha.75.tgz#10e6d8f9cf67e9f0750fea0f88cbcadb468c3595"
+  integrity sha512-FBWXyiM3JKwO582zg5BNzwEKdZ7jKpLeyEKXDjWoa7N4AnY6Ymg3VDg0C9ui23jRoOcTsQGpZxmLtZcznpL6QQ==
   optionalDependencies:
     colors "^1.3.0"
 

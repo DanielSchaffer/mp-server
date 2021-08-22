@@ -5,13 +5,15 @@ import { ClientScope } from '@mp-server/shared/client'
 
 import { AnimationFramesSubtickTimingSourceProvider } from './animation-frames-subtick-timing-source'
 import { ClientControlsManager } from './client-controls-manager'
+import { ClientEntityProviders } from './client-entity-providers'
 import { ClientInput } from './client-input'
+import { ServerUpdateEntitySpawnTriggerProvider } from './entity-trigger-providers'
 import { GameUi } from './game-ui'
 import { localToken } from './local-token'
 
-class ClientUiGameModuleBuilder extends ModuleBuilder<ClientUiGameModuleBuilder> {
+class ClientUiModuleBuilder extends ModuleBuilder<ClientUiModuleBuilder> {
   constructor(...entries: Registerable[]) {
-    super(ClientUiGameModuleBuilder, localToken.PKG, ...entries)
+    super(ClientUiModuleBuilder, localToken.PKG, ...entries)
   }
 
   public useInput(...inputs: (Constructor<ClientInput> | Provider<ClientInput>)[]): this {
@@ -19,11 +21,13 @@ class ClientUiGameModuleBuilder extends ModuleBuilder<ClientUiGameModuleBuilder>
   }
 }
 
-export const ClientUiGameModule = new ClientUiGameModuleBuilder(
+export const ClientUiModule = new ClientUiModuleBuilder(
   ClientControlsManager,
+  ClientEntityProviders,
   GameUi,
   SharedModule.config({
     subtickTimingSource: AnimationFramesSubtickTimingSourceProvider,
     tickTimingScope: ClientScope,
   }),
+  ServerUpdateEntitySpawnTriggerProvider,
 )

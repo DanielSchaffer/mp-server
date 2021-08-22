@@ -1,15 +1,14 @@
 import { Provider } from '@dandi/core'
 
-import { EntityScope } from './entity'
+import { Entity, EntityScope } from './entity'
 import { EntityDefRegistry } from './entity-def-registry'
-import { EntityProfile } from './entity-profile'
 import { localToken } from './local-token'
 
 /**
  * 100px = 1m
  */
 export interface EntityTransformConfig {
-  initialVelocity: number // m/s
+  initialVelocity: number
   maxVelocity: number // m/s
   acceleration: number // m/s/s
   deceleration: number // m/s/s
@@ -25,7 +24,7 @@ export const EntityTransformConfig = localToken.opinionated<EntityTransformConfi
 
 export const EntityTransformConfigProvider: Provider<EntityTransformConfig> = {
   provide: EntityTransformConfig,
-  useFactory: (entityDefs: EntityDefRegistry, profile: EntityProfile): EntityTransformConfig =>
-    entityDefs.get(profile.entityDefKey)?.config,
-  deps: [EntityDefRegistry, EntityProfile],
+  useFactory: (entityDefs: EntityDefRegistry, entity: Entity): EntityTransformConfig =>
+    entityDefs.get(entity.entityDefKey)?.config,
+  deps: [EntityDefRegistry, Entity],
 }

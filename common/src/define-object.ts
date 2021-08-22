@@ -133,8 +133,14 @@ export function isDescriptor<T>(obj: unknown): obj is Descriptor<T> {
   )
 }
 
+// https://stackoverflow.com/a/49579497/2596
+// export type ReadonlyDescriptorMap<TInit, TProps = TInit>
+// {
+//   [TProp in keyof TProps]
+// }
+
 export type DescriptorMap<TInit, TProps = TInit> = {
-  [TProp in keyof TProps]: Descriptor<TProps[TProp]>
+  [TProp in keyof Omit<TProps, keyof TInit>]: Descriptor<TProps[TProp]>
 } &
   ThisType<TInit & TProps>
 
@@ -166,4 +172,11 @@ export function defineObject<TInit, TProps, T extends TInit & TProps>(
     return Object.defineProperties({}, objOrProperties) as T
   }
   return Object.defineProperties(objOrProperties, properties) as T
+}
+
+export function createObject<TPrototype extends object, TProps extends object, T extends TPrototype & TProps>(
+  obj: TPrototype,
+  props: DescriptorMap<TPrototype, TProps>,
+): T {
+  return defineObject({ ...obj }, props)
 }

@@ -1,20 +1,17 @@
 import {
   defineScope,
   scopedInjectorFactory,
-  scopeInstanceFactory,
   ScopeRequiredProviders,
   scopeRequiredTokens,
 } from '@mp-server/common/dandi'
-import { Observable } from 'rxjs'
 
-import { EntityProfile } from './entity-profile'
 import { localToken } from './local-token'
 
 export type EntityId = string
 
-export interface EntityScopeData extends EntityProfile {
+export interface EntityScopeData {
   // TODO: switch to symbol after TypeScript 4.4
-  entityId: EntityId
+  readonly entityId: EntityId
 }
 
 const ENTITY_SCOPE = `${localToken.PKG}#Entity`
@@ -23,10 +20,8 @@ export type EntityScope = typeof EntityScope
 
 export interface EntityScopeInstance extends EntityScope, EntityScopeData {}
 
-export const createEntityScope = scopeInstanceFactory<EntityScope, EntityScopeInstance>(EntityScope)
-
 export interface Entity extends EntityScopeData {
-  destroy$: Observable<void>
+  readonly entityDefKey: string
 }
 
 export const Entity = localToken.opinionated<Entity>('Entity', {
@@ -34,14 +29,13 @@ export const Entity = localToken.opinionated<Entity>('Entity', {
   restrictScope: EntityScope,
 })
 
-export const EntityId = localToken.opinionated<EntityId>('Entity', {
+export const EntityId = localToken.opinionated<EntityId>('EntityId', {
   multi: false,
   restrictScope: EntityScope,
 })
 
 export const EntityScopeRequiredTokens = scopeRequiredTokens({
-  EntityId,
-  EntityProfile,
+  Entity,
 })
 export type EntityScopeRequiredTokens = typeof EntityScopeRequiredTokens
 export type EntityScopeRequiredProviders = ScopeRequiredProviders<EntityScopeRequiredTokens>

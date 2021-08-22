@@ -18,6 +18,7 @@
 
     "baseUrl": ".",
     "paths": {
+      "@dandi/rxjs": ["./dandi/rxjs"],
       "@dandi/websockets": ["./server/dandi/websockets"],
       "@mp-server/common": ["./common"],
       "@mp-server/common/dandi": ["./common/dandi"],

@@ -20,7 +20,7 @@ import {
 } from '@mp-server/shared/server'
 import { filter, map, mapTo, mergeMap, Observable, pluck, share, shareReplay, take } from 'rxjs'
 
-import { WebSocketClient } from './lib/ws'
+import { WebSocketClient } from '../lib/ws'
 
 @Injectable(Client, RestrictScope(ClientScope))
 export class GameClientConnection implements Client<ServerMessage, void> {

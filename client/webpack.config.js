@@ -11,6 +11,7 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts', '.json'],
     alias: {
+      '@dandi/rxjs': resolve(__dirname, '../dandi/rxjs'),
       '@mp-server/common': resolve(__dirname, '../common'),
       '@mp-server/common/rxjs': resolve(__dirname, '../common/rxjs'),
       '@mp-server/shared': resolve(__dirname, '../shared'),
@@ -30,6 +31,11 @@ module.exports = {
       {
         test: /\.ts$/,
         use: ['ts-loader'],
+      },
+      {
+        test: /\.js$/,
+        enforce: 'pre',
+        use: ['source-map-loader'],
       },
       {
         test: /\.scss$/,

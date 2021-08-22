@@ -2,8 +2,8 @@ import { ModuleBuilder, Registerable } from '@dandi/core'
 
 import { localToken } from './local-token'
 import { WebSocketServer } from './web-socket-server'
-import { WebSocketServiceManager } from './web-socket-service-manager'
 import { WebSocketServerConfig } from './web-socket-server-config'
+import { WebSocketServiceManager } from './web-socket-service-manager'
 
 class WebSocketServerModuleBuilder extends ModuleBuilder<WebSocketServerModuleBuilder> {
   constructor(...entries: Registerable[]) {
@@ -18,7 +18,4 @@ class WebSocketServerModuleBuilder extends ModuleBuilder<WebSocketServerModuleBu
   }
 }
 
-export const WebSocketServerModule = new WebSocketServerModuleBuilder(
-  WebSocketServer,
-  WebSocketServiceManager,
-)
+export const WebSocketServerModule = new WebSocketServerModuleBuilder(WebSocketServer, WebSocketServiceManager)

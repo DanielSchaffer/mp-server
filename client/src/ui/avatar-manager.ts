@@ -1,19 +1,19 @@
-import { Inject, Injectable, Injector, Logger, RestrictScope } from '@dandi/core'
+import { Inject, Injectable, Logger } from '@dandi/core'
+import { fromInjection } from '@dandi/rxjs'
 import { silence } from '@mp-server/common/rxjs'
 import {
-  createEntityInjector,
-  Entity,
+  EntityId,
   EntityScope,
-  EntityScopeData,
   EntityTransformManager,
+  SpawnedEntity,
+  SpawnedEntity$,
 } from '@mp-server/shared/entity'
-import { from, map, Observable, shareReplay, takeUntil, tap, withLatestFrom } from 'rxjs'
+import { map, mergeMap, Observable, shareReplay, tap, withLatestFrom } from 'rxjs'
 
-import { GameDom } from '../game/game-dom'
-
-import { Avatar, AvatarData, AvatarEntityId, createAvatarScope } from './avatar'
-import { avatarEntityProviders } from './avatar-entity-providers'
-import { avatarProviders } from './avatar-providers'
+import { Avatar } from './avatar'
+import { ClientEntityData } from './client-entity'
+import { GameDom } from './game-dom'
+import { localToken } from './local-token'
 
 export interface AvatarManager {
   readonly el$: Observable<HTMLDivElement>
@@ -21,36 +21,28 @@ export interface AvatarManager {
   readonly animate$: Observable<never>
   readonly destroy$: Observable<unknown>
 
-  readonly avatarEntityId: AvatarEntityId
+  readonly entityId: EntityId
+  readonly isLocalClient: boolean
 }
 
-// export const AvatarManager = localToken.opinionated<AvatarManager>('AvatarManager', {
-//   multi: false,
-//   restrictScope: EntityScope,
-// })
+export const AvatarManager = localToken.opinionated<AvatarManager>('AvatarManager', {
+  multi: false,
+  restrictScope: EntityScope,
+})
 
-export function avatarManagerFactory(
-  injector: Injector,
-  { entityId, entityDefKey }: EntityScopeData,
-): Observable<AvatarManager> {
-  const avatarEntityId = entityId
-  const avatarScope = createAvatarScope({ avatarEntityId })
-  const avatarInjector = injector.createChild(avatarScope, avatarProviders(avatarEntityId))
-  const avatarEntityInjector = createEntityInjector(
-    avatarInjector,
-    {
-      entityId: avatarEntityId,
-      entityDefKey,
-    },
-    avatarEntityProviders(avatarEntityId, entityDefKey),
-  )
-  return from(avatarEntityInjector.inject(AvatarManagerImpl) as Promise<AvatarManager>).pipe(shareReplay(1))
+export function avatarManagerFactory(entity: SpawnedEntity): Observable<AvatarManager> {
+  return fromInjection(
+    entity.injector,
+    AvatarManager,
+    false,
+    entity.despawn$.pipe(map((entity) => `${entity.entityDefKey} entity despawn (${entity.entityId})`)),
+  ).pipe(shareReplay(1))
 }
 
 /**
  * @internal
  */
-@Injectable(RestrictScope(EntityScope))
+@Injectable(AvatarManager)
 export class AvatarManagerImpl implements AvatarManager {
   public readonly el$: Observable<HTMLDivElement>
   public readonly avatar$: Observable<Avatar>
@@ -58,32 +50,46 @@ export class AvatarManagerImpl implements AvatarManager {
   public readonly animate$: Observable<never>
 
   public readonly isLocalClient: boolean
-  public readonly avatarEntityId: AvatarEntityId
+  public readonly entityId: EntityId
 
-  protected static initElement(dom: GameDom, entity: Entity, avatarData: AvatarData): Observable<HTMLDivElement> {
-    return new Observable<HTMLDivElement>((o) => {
-      const el = document.createElement('div')
-      el.setAttribute('class', 'avatar')
-      el.setAttribute('id', `avatar-${avatarData.avatarEntityId}`)
-      dom.stage.append(el)
-      console.log('added avatar', el)
-      o.next(el)
-      return () => {
-        console.log('removed avatar')
-        el.remove()
-      }
-    }).pipe(takeUntil(entity.destroy$), shareReplay(1))
+  protected static initElement(
+    dom: GameDom,
+    entity$: Observable<SpawnedEntity>,
+    clientEntityData: ClientEntityData,
+  ): Observable<HTMLDivElement> {
+    return entity$.pipe(
+      mergeMap(
+        (entity) =>
+          new Observable<HTMLDivElement>((o) => {
+            const el = document.createElement('div')
+            const cssClasses = ['entity', `entity--${entity.def.key}`]
+            if (clientEntityData.isLocalClient) {
+              cssClasses.push('entity--local')
+            }
+            el.setAttribute('class', cssClasses.join(' '))
+            el.setAttribute('id', `entity-${entity.entityId}`)
+            dom.stage.append(el)
+            console.log('added avatar', el)
+            o.next(el)
+            return () => {
+              console.log('removed avatar')
+              el.remove()
+            }
+          }),
+      ),
+      shareReplay(1),
+    )
   }
 
   protected static initAvatar(
     transformManager: EntityTransformManager,
     el$: Observable<HTMLDivElement>,
-    { avatarEntityId, isLocalClient }: AvatarData,
+    { entityId, isLocalClient }: ClientEntityData,
   ): Observable<Avatar> {
     return transformManager.transform$.pipe(
       withLatestFrom(el$),
       map(([state, el]) => ({
-        avatarEntityId,
+        entityId,
         el,
         isLocalClient,
         ...state,
@@ -129,19 +135,18 @@ export class AvatarManagerImpl implements AvatarManager {
   }
 
   constructor(
-    @Inject(Entity) protected readonly entity: Entity,
     @Inject(GameDom) protected readonly dom: GameDom,
-    @Inject(AvatarData) protected readonly avatarData: AvatarData,
+    @Inject(SpawnedEntity$) protected entity$: SpawnedEntity$,
+    @Inject(ClientEntityData) protected readonly avatarData: ClientEntityData,
     @Inject(EntityTransformManager) protected readonly transformManager: EntityTransformManager,
     @Inject(Logger) protected readonly logger: Logger,
   ) {
-    const el$ = AvatarManagerImpl.initElement(dom, entity, avatarData)
+    const el$ = AvatarManagerImpl.initElement(dom, entity$, avatarData)
     const avatar$ = AvatarManagerImpl.initAvatar(transformManager, el$, avatarData)
     const animate$ = AvatarManagerImpl.initAnimate(dom, avatar$)
 
     this.isLocalClient = avatarData.isLocalClient
-    this.avatarEntityId = avatarData.avatarEntityId
-    this.destroy$ = entity.destroy$
+    this.entityId = avatarData.entityId
 
     this.el$ = el$
     this.avatar$ = avatar$

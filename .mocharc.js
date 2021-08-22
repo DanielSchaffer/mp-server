@@ -17,7 +17,7 @@ module.exports = {
     './shared/entity/src/**/*.spec.ts',
     './shared/server/src/**/*.spec.ts',
     './client/src/**/*.spec.ts',
-    './server/dandi/src/**/*.spec.ts',
+    './dandi/*/src/**/*.spec.ts',
     './server/src/**/*.spec.ts',
   ],
 }

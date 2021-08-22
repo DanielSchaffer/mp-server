@@ -1,10 +1,20 @@
-.avatar {
-  border-radius: 10px 10px 2px 2px;
-  background: black;
-  width: 10px;
-  height: 20px;
+.entity {
   position: fixed;
   right: calc(50% - 5px);
   top: calc(50% - 10px);
   transform-origin: center center;
+
+  &--vehicle {
+    border-radius: 10px 10px 5px 5px;
+    border: solid 2px black;
+    background: black;
+    width: 10px;
+    height: 20px;
+
+    &.entity--local {
+      background: green;
+      z-index: 1000;
+    }
+  }
 }
+

@@ -24,7 +24,7 @@ export interface ScopeInjectorFactory<
   (
     parentInjector: Injector,
     instanceData: ScopeInstanceData<TScope, TScopeInstance>,
-    requiredProviders: ScopeRequiredProviders<TRequiredTokens>,
+    requiredProviders?: ScopeRequiredProviders<TRequiredTokens>,
     ...additionalProviders: Provider<unknown>[]
   ): Injector
 }
@@ -32,13 +32,13 @@ export interface ScopeInjectorFactory<
 export function scopedInjectorFactory<
   TScope extends CustomInjectionScope,
   TScopeInstance extends TScope,
-  TRequiredTokens extends ScopeRequiredTokens<unknown>,
+  TRequiredTokens extends ScopeRequiredTokens<unknown> = undefined,
 >(baseScope: TScope): ScopeInjectorFactory<TScope, TScopeInstance, TRequiredTokens> {
   const scopeFactory = scopeInstanceFactory(baseScope)
   return (
     parentInjector: Injector,
     instanceData: ScopeInstanceData<TScope, TScopeInstance>,
-    requiredProviders: ScopeRequiredProviders<TRequiredTokens>,
+    requiredProviders?: ScopeRequiredProviders<TRequiredTokens>,
     ...additionalProviders: Provider<unknown>[]
   ) => {
     const providers = Object.values(requiredProviders) as Provider<unknown>[]

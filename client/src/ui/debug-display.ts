@@ -3,7 +3,7 @@ import { silence } from '@mp-server/common/rxjs'
 import { isPoint, Point } from '@mp-server/shared'
 import { Observable, tap } from 'rxjs'
 
-import { Avatar } from '../avatar'
+import { Avatar } from './avatar'
 
 @Injectable()
 export class DebugDisplay {
@@ -31,7 +31,7 @@ export class DebugDisplay {
         const { acceleration, velocity } = avatar.transform.movement
         const { location, orientation } = avatar.transform.position
         const { rate } = avatar.transform.rotation
-        this.updateComponent(this.clientId, avatar.avatarEntityId)
+        this.updateComponent(this.clientId, avatar.entityId)
         this.updateComponent(this.velocity, `${Point.absTotal(velocity).toFixed(2)}m/s`)
         this.updateComponent(this.acceleration, `${Point.absTotal(acceleration).toFixed(2)}m/s/s`)
         this.updateComponent(this.orientation, `${orientation.y.toFixed(2)}º`)

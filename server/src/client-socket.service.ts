@@ -1,16 +1,12 @@
 import { Inject, Injectable } from '@dandi/core'
-import { audit, filter, map, Observable, shareReplay } from 'rxjs'
 
-import { WebSocketServer, WebSocketService } from '../dandi/websockets'
+import { WebSocketServer, WebSocketService } from '@dandi/websockets'
+import { Observable } from 'rxjs'
 
 @Injectable(WebSocketService)
 export class ClientSocketService implements WebSocketService {
-
   public readonly name: string = 'ClientSocketService'
   public readonly run$: Observable<never>
 
-  constructor(@Inject(WebSocketServer) private readonly server: WebSocketServer) {
-
-  }
-
+  constructor(@Inject(WebSocketServer) private readonly server: WebSocketServer) {}
 }
