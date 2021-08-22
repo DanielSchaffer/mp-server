@@ -10,7 +10,7 @@ export interface ClientRegistration {
 }
 
 export interface ClientControlStateChange {
-  type: ClientMessageType.inputStateChange
+  type: ClientMessageType.controlStateChange
   controlState: EntityControlState
 }
 

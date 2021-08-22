@@ -1,4 +1,4 @@
-import { filter, map, mergeMap, Observable, shareReplay } from 'rxjs'
+import { distinctUntilChanged, filter, map, mergeMap, Observable, shareReplay } from 'rxjs'
 import { scan } from 'rxjs/operators'
 
 import { EntityEvent, EntityEventType, EntitySpawnEvent, EntityStateUpdateEvent } from './entity-event'
@@ -49,6 +49,7 @@ export function mappedEntities<TValue>(
       }
       return result
     }, {} as MappedEntities<TValue>),
+    distinctUntilChanged(),
     shareReplay(1),
   )
 }

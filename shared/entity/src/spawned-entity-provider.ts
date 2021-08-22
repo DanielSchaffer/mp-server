@@ -1,6 +1,7 @@
 import { Injector } from '@dandi/core'
 import { createObject, Descriptor, DescriptorMap } from '@mp-server/common'
 import {
+  distinctUntilChanged,
   map,
   mapTo,
   merge,
@@ -30,6 +31,7 @@ import {
   EntityStateUpdateEvent,
 } from './entity-event'
 import { TickTimedEntityState$ } from './entity-state'
+import { EntityTransform } from './entity-transform'
 import { FireWeaponEvent, SpawnedEntity, SpawnedEntity$ } from './spawned-entity'
 import { WeaponsManager } from './weapons-manager'
 
@@ -65,6 +67,14 @@ function spawnedEntityFactory(
   // and then complete immediately after
   const closeEvent$: Observable<void> = despawnEvent$.pipe(switchMapTo(timer(0)), mapTo(undefined), shareReplay(1))
   const stateUpdateEvent$: Observable<EntityStateUpdateEvent> = state$.pipe(
+    map(({ control, transform }) => ({
+      control,
+      transform,
+    })),
+    distinctUntilChanged(
+      (prev, current) =>
+        prev.control === current.control && !EntityTransform.hasChanges(prev.transform, current.transform),
+    ),
     map((state) => ({
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       entity: spawnedEntity,

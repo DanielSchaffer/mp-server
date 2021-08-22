@@ -50,12 +50,10 @@ export const ControlledEntityTransformCalculation: Provider<EntityTransformCalcu
   ): Observable<ControlledEntityTransformCalculationData> {
     return subtick$.pipe(
       withLatestFrom(controlState$),
-      map(([timing, control]) => {
-        return {
-          control,
-          timing,
-        }
-      }),
+      map(([timing, control]) => ({
+        control,
+        timing,
+      })),
       share(),
     )
   },

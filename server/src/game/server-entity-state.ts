@@ -2,8 +2,8 @@ import {
   EntityState,
   INITIAL_ENTITY_CONTROL_STATE,
   INITIAL_ENTITY_TRANSFORM,
-  MappedEntities,
   mappedEntities,
+  MappedEntities,
   SpawnedEntities$,
   SpawnedEntity,
 } from '@mp-server/shared/entity'

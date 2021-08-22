@@ -1,7 +1,7 @@
 import {
   EntityEventType,
-  MappedEntities,
   mappedEntities,
+  MappedEntities,
   SpawnedEntities$,
   SpawnedEntity,
 } from '@mp-server/shared/entity'

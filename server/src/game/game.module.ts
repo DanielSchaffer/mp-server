@@ -10,9 +10,8 @@ import { InitialEntities$Provider } from './inititial-entities'
 import { localToken } from './local-token'
 import { ProcessHighResTime } from './process-high-res-time'
 import { ServerActiveEntitiesMap$Provider } from './server-active-entities'
-import { ServerEntityControlState$Provider } from './server-entity-control-state-provider'
 import { ServerEntityStateMap$Provider } from './server-entity-state'
-import { ServerUpdateEntitySpawnTriggerProvider } from './server-entity-trigger-providers'
+import { ServerUpdateEntitySpawnTrigger$Provider } from './server-entity-trigger-providers'
 import { ServerTickTimedEntityState$Provider } from './server-tick-timed-entity-state-provider'
 import { ServerTickUpdate$Provider } from './server-tick-update-provider'
 
@@ -38,9 +37,8 @@ export const GameModule = new GameModuleBuilder(
   InitialEntities$Provider,
   ProcessHighResTime,
   ServerActiveEntitiesMap$Provider,
-  ServerEntityControlState$Provider,
   ServerEntityStateMap$Provider,
-  ServerUpdateEntitySpawnTriggerProvider,
+  ServerUpdateEntitySpawnTrigger$Provider,
   ServerTickTimedEntityState$Provider,
   ServerTickUpdate$Provider,
 )

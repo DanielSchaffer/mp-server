@@ -1,5 +1,5 @@
 export enum ClientMessageType {
   disconnect = 'disconnect',
-  inputStateChange = 'inputStateChange',
+  controlStateChange = 'controlStateChange',
   register = 'register',
 }

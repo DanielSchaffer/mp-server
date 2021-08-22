@@ -37,7 +37,7 @@ export class GameUi {
     const localInputUpdate$ = localInput$.pipe(
       map(
         (controlState): ClientControlStateChange => ({
-          type: ClientMessageType.inputStateChange,
+          type: ClientMessageType.controlStateChange,
           controlState,
         }),
       ),
