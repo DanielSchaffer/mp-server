@@ -8,7 +8,7 @@ import { entityDefEntryProvider } from './entity-def'
 import { MaxAgeDespawnTriggerProvider, MaxRangeDespawnTriggerProvider } from './entity-def-despawn-triggers'
 import { EntityDefRegistry } from './entity-def-registry'
 import { EntityDespawnTrigger$ } from './entity-despawn-trigger'
-import { EntitySpawnTrigger, EntitySpawnTrigger$ } from './entity-spawn-trigger'
+import { EntitySpawnTrigger, EntitySpawnTriggers$ } from './entity-spawn-trigger'
 import { SpawnedEntities$, SpawnedEntity$ } from './spawned-entity'
 import { SpawnedEntityParentInjectorFn } from './spawned-entity-parent-injector'
 
@@ -44,7 +44,7 @@ function spawnedEntitiesFactory(
   injector: Injector,
   defs: EntityDefRegistry,
   parentInjectorFn: SpawnedEntityParentInjectorFn,
-  spawnTriggers: EntitySpawnTrigger$[],
+  spawnTriggers: EntitySpawnTriggers$[],
 ): SpawnedEntity$ {
   return merge(...spawnTriggers).pipe(
     mergeMap((trigger) => {
@@ -56,7 +56,14 @@ function spawnedEntitiesFactory(
         requiredProviders,
         ...additionalProviders,
       )
-      return fromInjection(entityInjector, SpawnedEntity$, false, trigger.despawnTrigger$.pipe(pluck('key')))
+      const despawnTrigger$ = trigger.despawnTrigger$?.pipe(pluck('key'))
+      const injectedDespawnTrigger$ = fromInjection(entityInjector, EntityDespawnTrigger$, false, despawnTrigger$)
+      const compositeDespawnTrigger$ = merge(
+        despawnTrigger$ ?? NEVER,
+        injectedDespawnTrigger$.pipe(mergeMap((despawnTriggers) => merge(...despawnTriggers))).pipe(pluck('key')),
+      )
+
+      return fromInjection(entityInjector, SpawnedEntity$, false, compositeDespawnTrigger$)
     }),
     mergeMap((spawnedEntity$) => spawnedEntity$),
     share(),
@@ -74,7 +81,7 @@ export function spawnedEntitiesProvider(
   return {
     provide: SpawnedEntities$,
     useFactory: spawnedEntitiesFactory,
-    deps: [Injector, EntityDefRegistry, SpawnedEntityParentInjectorFn, EntitySpawnTrigger$],
+    deps: [Injector, EntityDefRegistry, SpawnedEntityParentInjectorFn, EntitySpawnTriggers$],
     providers,
     restrictScope,
   }

@@ -5,11 +5,11 @@ import { StaticProjectile } from './static-projectile'
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 const VEHICLE_TRANSFORM_CONFIG: EntityTransformConfig = {
   initialVelocity: 0,
-  maxVelocity: 150,
-  acceleration: 50,
+  maxVelocity: 350,
+  acceleration: 150,
   deceleration: 75,
-  maxRotationRate: 125,
-  rotationAcceleration: 10,
+  maxRotationRate: 175,
+  rotationAcceleration: 25,
   rotationDeceleration: 15,
 }
 

@@ -1,5 +1,3 @@
-import { ChangedContainer, Point } from '@mp-server/shared'
-
 import { Entity } from './entity'
 import { EntityState } from './entity-state'
 import { EntityTransform } from './entity-transform'
@@ -18,7 +16,7 @@ export interface BaseEntityEvent {
 
 export interface EntitySpawnEvent extends BaseEntityEvent {
   type: EntityEventType.spawn
-  initialTransform?: ChangedContainer<EntityTransform, Point>
+  initialTransform?: EntityTransform
 }
 
 export interface EntityDespawnEvent extends BaseEntityEvent {

@@ -3,7 +3,8 @@ import {
   EntityDespawnTrigger$,
   entityDespawnTriggerDefFactory,
   EntitySpawnData,
-  EntitySpawnTrigger$,
+  EntitySpawnTrigger,
+  EntitySpawnTriggers$,
 } from '@mp-server/shared/entity'
 import { filter, from, map, mapTo, merge, Observable, shareReplay, switchMap, take } from 'rxjs'
 
@@ -18,7 +19,7 @@ const serverUpdateDespawnTriggerDef = entityDespawnTriggerDefFactory<
 
 const EntityRemovedDespawnTriggerDef = serverUpdateDespawnTriggerDef('removeEntity$')
 
-function serverUpdateEntitySpawnTriggerProvider(conn: GameClientConnection): EntitySpawnTrigger$ {
+function serverUpdateEntitySpawnTriggerProvider(conn: GameClientConnection): EntitySpawnTriggers$ {
   const initialEntities$ = conn.config$.pipe(
     take(1),
     switchMap((config) => from(config.initialEntities)),
@@ -32,17 +33,24 @@ function serverUpdateEntitySpawnTriggerProvider(conn: GameClientConnection): Ent
         mapTo(EntityRemovedDespawnTriggerDef),
         shareReplay(1),
       )
-      return {
+      const trigger = {
         despawnTrigger$,
         entity,
         initialTransform,
+        providers: [
+          {
+            provide: EntitySpawnTrigger,
+            useFactory: () => trigger,
+          },
+        ],
       }
+      return trigger
     }),
   )
 }
 
-export const ServerUpdateEntitySpawnTriggerProvider = {
-  provide: EntitySpawnTrigger$,
+export const ServerUpdateEntitySpawnTriggers$Provider = {
+  provide: EntitySpawnTriggers$,
   useFactory: serverUpdateEntitySpawnTriggerProvider,
   deps: [GameClientConnection],
   restrictScope: ClientScope,

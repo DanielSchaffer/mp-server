@@ -4,6 +4,7 @@ import { silence } from '@mp-server/common/rxjs'
 import {
   EntityId,
   EntityScope,
+  EntitySpawnTrigger,
   EntityTransformManager,
   SpawnedEntity,
   SpawnedEntity$,
@@ -54,6 +55,7 @@ export class AvatarManagerImpl implements AvatarManager {
     dom: GameDom,
     entity$: Observable<SpawnedEntity>,
     clientEntityData: ClientEntityData,
+    spawnTrigger: EntitySpawnTrigger,
   ): Observable<HTMLDivElement> {
     return entity$.pipe(
       mergeMap((entity) =>
@@ -65,6 +67,10 @@ export class AvatarManagerImpl implements AvatarManager {
           }
           el.setAttribute('class', cssClasses.join(' '))
           el.setAttribute('id', `entity-${entity.entityId}`)
+          if (spawnTrigger.initialTransform) {
+            const { location, orientation } = spawnTrigger.initialTransform.position
+            this.applyTransform(el, `translate(${location.x}px, ${location.y}px) rotate(${orientation.y}deg)`)
+          }
           dom.stage.append(el)
           console.log('added avatar', el)
           o.next(el)
@@ -134,11 +140,12 @@ export class AvatarManagerImpl implements AvatarManager {
   constructor(
     @Inject(GameDom) protected readonly dom: GameDom,
     @Inject(SpawnedEntity$) protected entity$: SpawnedEntity$,
+    @Inject(EntitySpawnTrigger) protected spawnTrigger: EntitySpawnTrigger,
     @Inject(ClientEntityData) protected readonly avatarData: ClientEntityData,
     @Inject(EntityTransformManager) protected readonly transformManager: EntityTransformManager,
     @Inject(Logger) protected readonly logger: Logger,
   ) {
-    const el$ = AvatarManagerImpl.initElement(dom, entity$, avatarData)
+    const el$ = AvatarManagerImpl.initElement(dom, entity$, avatarData, spawnTrigger)
     const avatar$ = AvatarManagerImpl.initAvatar(transformManager, el$, avatarData)
     const animate$ = AvatarManagerImpl.initAnimate(dom, avatar$)
 

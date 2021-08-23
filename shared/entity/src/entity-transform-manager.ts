@@ -6,6 +6,7 @@ import { scan } from 'rxjs/operators'
 
 import { EntityScope } from './entity'
 import { EntityControlState } from './entity-control-state'
+import { EntitySpawnTrigger } from './entity-spawn-trigger'
 import { SubtickTimedEntityState } from './entity-state'
 import { EntityRotation, EntityTransform, INITIAL_ENTITY_TRANSFORM } from './entity-transform'
 import {
@@ -21,6 +22,22 @@ const WRAP_DEGREES = 360
 @Injectable(RestrictScope(EntityScope))
 export class EntityTransformManager {
   public readonly transform$: Observable<SubtickTimedEntityState>
+
+  public static calculateAcceleration(
+    transformConfig: EntityTransformConfig,
+    prevAcceleration: Point,
+    orientation: Point,
+    relativeAcceleration: number,
+  ): Changed<Point> {
+    const baseAcceleration = relativeAcceleration > 0 ? transformConfig.deceleration : transformConfig.acceleration
+    const accelerationRate = baseAcceleration * relativeAcceleration
+    const angleRads = (orientation.y + ORIENTATION_Y_OFFSET_DEGREES) * (Math.PI / DEGREES_TO_RADS_DIVISOR)
+    return Point.isChanged(prevAcceleration, {
+      x: Math.cos(angleRads) * accelerationRate,
+      y: Math.sin(angleRads) * accelerationRate,
+      z: 0,
+    })
+  }
 
   protected static calculateRotation(
     transformConfig: EntityTransformConfig,
@@ -51,21 +68,14 @@ export class EntityTransformManager {
     }
   }
 
-  protected static calculateAcceleration(
+  protected static calculateControlledAcceleration(
     transformConfig: EntityTransformConfig,
     prevAcceleration: Point,
     orientation: Point,
     control: EntityControlState,
   ): Changed<Point> {
     const relativeAcceleration = control.backwardAcceleration - control.forwardAcceleration
-    const baseAcceleration = relativeAcceleration < 0 ? transformConfig.acceleration : transformConfig.deceleration
-    const accelerationRate = baseAcceleration * relativeAcceleration
-    const angleRads = (orientation.y + ORIENTATION_Y_OFFSET_DEGREES) * (Math.PI / DEGREES_TO_RADS_DIVISOR)
-    return Point.isChanged(prevAcceleration, {
-      x: Math.cos(angleRads) * accelerationRate,
-      y: Math.sin(angleRads) * accelerationRate,
-      z: 0,
-    })
+    return this.calculateAcceleration(transformConfig, prevAcceleration, orientation, relativeAcceleration)
   }
 
   protected static calculateVelocityIncrement(acceleration: Point, timedelta: number): Point {
@@ -87,6 +97,7 @@ export class EntityTransformManager {
 
   protected static initTransform(
     transformConfig: EntityTransformConfig,
+    spawnTrigger: EntitySpawnTrigger,
     transformTrigger$: EntityTransformCalculationTrigger$,
     logger: Logger,
   ): Observable<SubtickTimedEntityState> {
@@ -98,7 +109,9 @@ export class EntityTransformManager {
           previous = {
             control,
             timing,
-            transform: INITIAL_ENTITY_TRANSFORM,
+            transform:
+              (spawnTrigger.initialTransform as ChangedContainer<EntityTransform, Point>) ??
+              INITIAL_ENTITY_TRANSFORM,
           }
         }
 
@@ -146,7 +159,7 @@ export class EntityTransformManager {
           rotation,
           timing.subtickTimeDelta,
         )
-        const acceleration = this.calculateAcceleration(
+        const acceleration = this.calculateControlledAcceleration(
           transformConfig,
           previous.transform.movement.acceleration,
           orientation,
@@ -190,8 +203,14 @@ export class EntityTransformManager {
     @Inject(EntityTransformCalculationTrigger$)
     protected readonly transformTrigger$: EntityTransformCalculationTrigger$,
     @Inject(EntityTransformConfig) protected readonly transformConfig: EntityTransformConfig,
+    @Inject(EntitySpawnTrigger) protected readonly spawnTrigger: EntitySpawnTrigger,
     @Inject(Logger) protected readonly logger: Logger,
   ) {
-    this.transform$ = EntityTransformManager.initTransform(transformConfig, transformTrigger$, logger)
+    this.transform$ = EntityTransformManager.initTransform(
+      transformConfig,
+      spawnTrigger,
+      transformTrigger$,
+      logger,
+    )
   }
 }

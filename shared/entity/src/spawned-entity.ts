@@ -17,6 +17,7 @@ export interface FireWeaponEvent {
 export interface SpawnedEntity extends Entity {
   readonly def: EntityDef
   readonly injector: Injector
+  readonly initialTransform: EntityTransform
 
   readonly despawn$: Observable<this>
   readonly event$: Observable<EntityEvent>

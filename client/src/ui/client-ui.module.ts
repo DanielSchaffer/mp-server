@@ -7,7 +7,7 @@ import { AnimationFramesSubtickTimingSourceProvider } from './animation-frames-s
 import { ClientControlsManager } from './client-controls-manager'
 import { ClientEntityProviders } from './client-entity-providers'
 import { ClientInput } from './client-input'
-import { ServerUpdateEntitySpawnTriggerProvider } from './entity-trigger-providers'
+import { ServerUpdateEntitySpawnTriggers$Provider } from './entity-trigger-providers'
 import { GameUi } from './game-ui'
 import { localToken } from './local-token'
 
@@ -29,5 +29,5 @@ export const ClientUiModule = new ClientUiModuleBuilder(
     subtickTimingSource: AnimationFramesSubtickTimingSourceProvider,
     tickTimingScope: ClientScope,
   }),
-  ServerUpdateEntitySpawnTriggerProvider,
+  ServerUpdateEntitySpawnTriggers$Provider,
 )

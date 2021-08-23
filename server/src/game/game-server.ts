@@ -38,6 +38,7 @@ export class GameServer implements WebSocketService {
             type: ServerMessageType.addEntity,
             entity,
             tick,
+            initialTransform: event.initialTransform,
           }
         }
         if (event.type === EntityEventType.despawn) {

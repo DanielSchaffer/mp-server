@@ -58,6 +58,7 @@ describe.marbles('mappedEntities', ({ cold }) => {
         event$,
         fireWeapon$: NEVER,
         state$: NEVER,
+        initialTransform: undefined,
       },
       entity,
     )

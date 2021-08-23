@@ -7,7 +7,8 @@ import {
   EntityDefRegistry,
   EntityDespawnTrigger$,
   entityDespawnTriggerDefFactory,
-  EntitySpawnTrigger$,
+  EntitySpawnTrigger,
+  EntitySpawnTriggers$,
 } from '@mp-server/shared/entity'
 import { filter, mapTo, mergeMap, of, pluck, shareReplay, takeUntil } from 'rxjs'
 import { share } from 'rxjs/operators'
@@ -40,7 +41,7 @@ function clientEntityProviders(conn: ClientSocketConnection): Provider<unknown>[
 function clientConnectionEntitySpawnTriggerFactory(
   defs: EntityDefRegistry,
   conn$: ClientSocketConnections$,
-): EntitySpawnTrigger$ {
+): EntitySpawnTriggers$ {
   return conn$.pipe(
     mergeMap((conn) => {
       const despawnTrigger$: EntityDespawnTrigger$ = conn.close$.pipe(
@@ -52,20 +53,26 @@ function clientConnectionEntitySpawnTriggerFactory(
         entityDefKey: conn.profile.entityDefKey,
       }
 
-      const providers = clientEntityProviders(conn)
-
-      return of({
+      const trigger = {
         despawnTrigger$,
         entity,
-        providers,
-      }).pipe(takeUntil(despawnTrigger$), shareReplay(1))
+        providers: [
+          ...clientEntityProviders(conn),
+          {
+            provide: EntitySpawnTrigger,
+            useFactory: (): EntitySpawnTrigger => trigger,
+          },
+        ],
+      }
+
+      return of(trigger).pipe(takeUntil(despawnTrigger$), shareReplay(1))
     }),
     share(),
   )
 }
 
-export const ServerUpdateEntitySpawnTrigger$Provider: Provider<EntitySpawnTrigger$> = {
-  provide: EntitySpawnTrigger$,
+export const ServerUpdateEntitySpawnTrigger$Provider: Provider<EntitySpawnTriggers$> = {
+  provide: EntitySpawnTriggers$,
   useFactory: clientConnectionEntitySpawnTriggerFactory,
   deps: [EntityDefRegistry, ClientSocketConnections$],
 }

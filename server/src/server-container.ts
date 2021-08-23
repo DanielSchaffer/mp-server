@@ -14,7 +14,7 @@ import { MvcViewModule } from '@dandi/mvc-view'
 import { WebSocketServerModule } from '@dandi/websockets'
 import { SharedModule } from '@mp-server/shared'
 import { EntitiesModule } from '@mp-server/shared/entities'
-import { EntitySharedModule } from '@mp-server/shared/entity'
+import { EntitySharedModule, WeaponProjectileEntitySpawnTriggers$Provider } from '@mp-server/shared/entity'
 
 import { ClientController } from './client/client-controller'
 import { GameModule } from './game'
@@ -73,7 +73,6 @@ export const server = new DandiApplication({
     SharedModule.config({ subtickTimingSource: false }),
     EntitySharedModule.config(),
     EntitiesModule.withAllEntities(),
-    // WeaponProjectileEntitySpawnTriggerProvider,
-    // Service Implementations
+    WeaponProjectileEntitySpawnTriggers$Provider,
   ],
 })

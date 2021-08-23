@@ -30,6 +30,7 @@ import {
   EntitySpawnEvent,
   EntityStateUpdateEvent,
 } from './entity-event'
+import { EntitySpawnTrigger } from './entity-spawn-trigger'
 import { TickTimedEntityState$ } from './entity-state'
 import { EntityTransform } from './entity-transform'
 import { FireWeaponEvent, SpawnedEntity, SpawnedEntity$ } from './spawned-entity'
@@ -44,6 +45,7 @@ function readonlyProperty<T>(value: T): Descriptor<T> {
 
 function spawnedEntityFactory(
   injector: Injector,
+  spawnTrigger: EntitySpawnTrigger,
   entity: Entity,
   def: EntityDef,
   state$: TickTimedEntityState$,
@@ -53,8 +55,12 @@ function spawnedEntityFactory(
   const despawnTrigger$ = race(...despawnTriggers).pipe(shareReplay(1))
   const spawnEvent$: Observable<EntitySpawnEvent> = NEVER.pipe(
     startWith(undefined),
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    map(() => entityEvent(EntityEventType.spawn, { entity: spawnedEntity })),
+    map(() =>
+      entityEvent(EntityEventType.spawn, {
+        entity,
+        initialTransform: spawnTrigger.initialTransform,
+      }),
+    ),
     shareReplay(1),
   )
   const despawnEvent$: Observable<EntityDespawnEvent> = despawnTrigger$.pipe(
@@ -109,6 +115,7 @@ function spawnedEntityFactory(
   const props: DescriptorMap<Entity, SpawnedEntity> = {
     def: readonlyProperty(def),
     injector: readonlyProperty(injector),
+    initialTransform: readonlyProperty(spawnTrigger.initialTransform),
     despawn$: {
       get(this: SpawnedEntity): Observable<SpawnedEntity> {
         return despawnTrigger$.pipe(mapTo(this))
@@ -133,5 +140,13 @@ function spawnedEntityFactory(
 export const SpawnedEntity$Provider = {
   provide: SpawnedEntity$,
   useFactory: spawnedEntityFactory,
-  deps: [Injector, Entity, EntityDef, TickTimedEntityState$, EntityDespawnTrigger$, WeaponsManager],
+  deps: [
+    Injector,
+    EntitySpawnTrigger,
+    Entity,
+    EntityDef,
+    TickTimedEntityState$,
+    EntityDespawnTrigger$,
+    WeaponsManager,
+  ],
 }

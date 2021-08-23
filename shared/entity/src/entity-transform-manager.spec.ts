@@ -24,7 +24,7 @@ class EntityTransformManagerFacade extends EntityTransformManager {
     orientation: Point,
     control: EntityControlState,
   ): any {
-    return super.calculateAcceleration(config, prevAcceleration, orientation, control)
+    return super.calculateControlledAcceleration(config, prevAcceleration, orientation, control)
   }
 
   public static calculateVelocityIncrement(acceleration: Point, timingMultiplier: number): Point {
@@ -40,7 +40,7 @@ describe('EntityTransformManager', () => {
       const control: EntityControlState = Object.assign({}, INITIAL_ENTITY_CONTROL_STATE, {
         forwardAcceleration: true,
       })
-      const result = EntityTransformManagerFacade.calculateAcceleration(
+      const result = EntityTransformManagerFacade.calculateControlledAcceleration(
         config,
         prevAcceleration,
         orientation,

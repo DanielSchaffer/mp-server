@@ -30,7 +30,7 @@ const KEY_MAPPINGS: KeyMappings = {
   ArrowDown: ['backwardAcceleration', 1, 0],
   ArrowLeft: ['rotationLeft', 1, 0],
   ArrowRight: ['rotationRight', 1, 0],
-  Space: ['fire', true, false],
+  ' ': ['fire', true, false],
   Alt: ['altFire', true, false],
 }
 

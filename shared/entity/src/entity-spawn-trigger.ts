@@ -1,7 +1,7 @@
 import { Provider } from '@dandi/core'
 import { Observable } from 'rxjs'
 
-import { Entity } from './entity'
+import { Entity, EntityScope } from './entity'
 import { EntityDespawnTrigger$ } from './entity-despawn-trigger'
 import { EntityTransform } from './entity-transform'
 import { localToken } from './local-token'
@@ -16,7 +16,12 @@ export interface EntitySpawnTrigger extends EntitySpawnData {
   providers?: Provider<unknown>[]
 }
 
-export type EntitySpawnTrigger$ = Observable<EntitySpawnTrigger>
-export const EntitySpawnTrigger$ = localToken.opinionated<EntitySpawnTrigger$>('EntitySpawnTrigger$', {
+export const EntitySpawnTrigger = localToken.opinionated<EntitySpawnTrigger>('EntitySpawnTrigger', {
+  multi: false,
+  restrictScope: EntityScope,
+})
+
+export type EntitySpawnTriggers$ = Observable<EntitySpawnTrigger>
+export const EntitySpawnTriggers$ = localToken.opinionated<EntitySpawnTriggers$>('EntitySpawnTriggers$', {
   multi: true,
 })

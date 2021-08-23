@@ -1,5 +1,7 @@
+import { ChangedContainer, Point } from '@mp-server/shared'
 import {
   EntityState,
+  EntityTransform,
   INITIAL_ENTITY_CONTROL_STATE,
   INITIAL_ENTITY_TRANSFORM,
   mappedEntities,
@@ -24,10 +26,10 @@ export const ServerEntityStateMap$ = localToken.opinionated<ServerEntityStateMap
 
 function serverEntityStateMapFactory(entities$: SpawnedEntities$): ServerEntityStateMap$ {
   return mappedEntities(entities$, {
-    spawn: (entity, event) => ({
+    spawn: (entity, event): ServerEntityState => ({
       entity,
       control: INITIAL_ENTITY_CONTROL_STATE,
-      transform: event.initialTransform ?? INITIAL_ENTITY_TRANSFORM,
+      transform: (event.initialTransform as ChangedContainer<EntityTransform, Point>) ?? INITIAL_ENTITY_TRANSFORM,
     }),
     update: (entity, event) => ({
       entity,
